@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="sl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analiza Takta in Kapacitete Celice</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              500: '#3b82f6',
+              600: '#2563eb',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- HEADER -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-800 pb-5 gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Analiza Takta in Kapacitete Celice</h1>
+            <p class="text-sm text-slate-400">Inženirsko orodje za preračun cikla in optimizacijo ozkih grl za tehnične ponudbe</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="loadSampleData()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md border border-slate-700 transition">
+          Naloži vzorčne podatke
+        </button>
+        <button onclick="clearAllSteps()" class="px-3 py-2 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-md border border-rose-800/50 transition">
+          Počisti vse
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI DASHBOARD -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total Cycle Time -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
+        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Skupni čas cikla</div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi-cycle-time" class="text-3xl font-bold font-mono-num text-blue-400">0.00</span>
+          <span class="text-slate-400 font-medium">s</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1">Sota vseh operacij v celici</div>
+      </div>
+
+      <!-- Theoretical PPH -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Teoretična kapaciteta</div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi-pph-theo" class="text-3xl font-bold font-mono-num text-emerald-400">0</span>
+          <span class="text-slate-400 font-medium">kos / h</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1">Pri 100 % učinkovitosti ($3600/T_{cikel}$)</div>
+      </div>
+
+      <!-- Realistic Production / Shift -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+        <div class="flex justify-between items-center">
+          <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Realno / Izmena (8h)</div>
+          <div class="flex items-center gap-1 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+            <span class="text-xs text-slate-400">OEE:</span>
+            <input type="number" id="oee-input" value="85" min="1" max="100" oninput="render()" class="w-10 bg-transparent text-right font-mono-num font-bold text-xs text-amber-400 focus:outline-none">
+            <span class="text-xs text-slate-400">%</span>
+          </div>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi-shift-real" class="text-3xl font-bold font-mono-num text-amber-400">0</span>
+          <span class="text-slate-400 font-medium">kos / 8h</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1">Realno: <span id="kpi-pph-real" class="font-mono-num text-slate-300">0</span> kos/h</div>
+      </div>
+
+      <!-- Bottleneck Card -->
+      <div id="bottleneck-card" class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg transition-all">
+        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider flex items-center justify-between">
+          <span>Ozko grlo (Bottleneck)</span>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-500/20 text-rose-400 border border-rose-500/30">Omejitev</span>
+        </div>
+        <div id="kpi-bottleneck-name" class="mt-2 text-lg font-bold text-rose-400 truncate">/</div>
+        <div class="text-xs text-slate-400 mt-1">
+          Čas: <span id="kpi-bottleneck-time" class="font-mono-num font-bold text-slate-200">0.0</span>s 
+          (<span id="kpi-bottleneck-share" class="font-mono-num text-slate-200">0%</span> cikla)
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN GRID: EDITOR & TIMELINE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- LEFT: OPERATIONS INPUT & TABLE (5 cols) -->
+      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
+        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          Vnos korakov procesa
+        </h2>
+
+        <!-- Form for adding step -->
+        <form id="step-form" onsubmit="addStep(event)" class="grid grid-cols-12 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800">
+          <div class="col-span-12 sm:col-span-5">
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Naziv operacije</label>
+            <input type="text" id="input-name" placeholder="npr. Premik robota" required class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <div class="col-span-6 sm:col-span-3">
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Čas [s]</label>
+            <input type="number" id="input-time" step="0.1" min="0.1" placeholder="2.5" required class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white font-mono-num placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <div class="col-span-6 sm:col-span-4">
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Izvajalec</label>
+            <select id="input-executor" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="Robot">Robot</option>
+              <option value="Stroj">Stroj</option>
+              <option value="Operater">Operater</option>
+              <option value="Pnevmatski pogon">Pnevmatika</option>
+            </select>
+          </div>
+          <div class="col-span-12 mt-1">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1">
+              <span>+ Dodaj korak</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Steps List / Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-2">#</th>
+                <th class="py-2.5 px-2">Operacija</th>
+                <th class="py-2.5 px-2">Izvajalec</th>
+                <th class="py-2.5 px-2 text-right">Čas [s]</th>
+                <th class="py-2.5 px-2 text-center">Akcija</th>
+              </tr>
+            </thead>
+            <tbody id="steps-table-body" class="divide-y divide-slate-800/60 font-medium">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: VISUAL TIMELINE & EXPORT (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- VISUAL TIMELINE CHART -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h2 class="text-base font-semibold text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Časovni potek operacij (Gantogram)
+            </h2>
+            
+            <!-- Legend -->
+            <div class="flex flex-wrap gap-2 text-[11px]">
+              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Robot</span>
+              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Stroj</span>
+              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>Operater</span>
+              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>Pnevmatika</span>
+            </div>
+          </div>
+
+          <!-- Sequential Timeline Stack -->
+          <div class="space-y-3 pt-2" id="gantt-container">
+            <!-- Dynamic Gantt rows -->
+          </div>
+        </div>
+
+        <!-- EXPORT & PONUDBENI POVZETEK -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Izvoz za tehnično ponudbo
+            </h2>
+            <div class="flex items-center gap-2">
+              <button onclick="copySummary()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>Kopiraj tekst</span>
+              </button>
+              <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-medium transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h55.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Izvozi CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <textarea id="summary-text" readonly class="w-full h-32 bg-slate-950 border border-slate-800 rounded p-3 text-xs font-mono-num text-slate-300 focus:outline-none resize-none"></textarea>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-xl text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
+    Kopirano v odložišče!
+  </div>
+
+  <script>
+    // State
+    let steps = [
+      { id: 1, name: "Naložitev surovca", time: 3.5, executor: "Operater" },
+      { id: 2, name: "Premik robota do vpenjala", time: 2.2, executor: "Robot" },
+      { id: 3, name: "Obdelava / Presanje", time: 11.5, executor: "Stroj" },
+      { id: 4, name: "Pnevmatski izmet", time: 1.2, executor: "Pnevmatski pogon" },
+      { id: 5, name: "Optična kontrola kvalitete", time: 2.8, executor: "Robot" },
+      { id: 6, name: "Razložitev in zlaganje", time: 3.8, executor: "Operater" }
+    ];
+
+    const executorColors = {
+      'Robot': { bg: 'bg-blue-500', text: 'text-blue-400', badge: 'bg-blue-500/20 border-blue-500/30' },
+      'Stroj': { bg: 'bg-emerald-500', text: 'text-emerald-400', badge: 'bg-emerald-500/20 border-emerald-500/30' },
+      'Operater': { bg: 'bg-amber-500', text: 'text-amber-400', badge: 'bg-amber-500/20 border-amber-500/30' },
+      'Pnevmatski pogon': { bg: 'bg-purple-500', text: 'text-purple-400', badge: 'bg-purple-500/20 border-purple-500/30' }
+    };
+
+    function render() {
+      const totalTime = steps.reduce((acc, curr) => acc + curr.time, 0);
+      const oee = parseFloat(document.getElementById('oee-input').value) || 85;
+      
+      // Calculate Metrics
+      const pphTheo = totalTime > 0 ? (3600 / totalTime) : 0;
+      const pphReal = pphTheo * (oee / 100);
+      const shiftReal = pphReal * 8;
+
+      // Find Bottleneck
+      let maxStep = null;
+      if (steps.length > 0) {
+        maxStep = steps.reduce((prev, current) => (prev.time > current.time) ? prev : current);
+      }
+
+      // Update KPI Cards
+      document.getElementById('kpi-cycle-time').textContent = totalTime.toFixed(2);
+      document.getElementById('kpi-pph-theo').textContent = Math.floor(pphTheo).toLocaleString('sl-SI');
+      document.getElementById('kpi-pph-real').textContent = Math.floor(pphReal).toLocaleString('sl-SI');
+      document.getElementById('kpi-shift-real').textContent = Math.floor(shiftReal).toLocaleString('sl-SI');
+
+      const cardBn = document.getElementById('bottleneck-card');
+      if (maxStep) {
+        document.getElementById('kpi-bottleneck-name').textContent = maxStep.name;
+        document.getElementById('kpi-bottleneck-time').textContent = maxStep.time.toFixed(1);
+        const share = totalTime > 0 ? ((maxStep.time / totalTime) * 100).toFixed(1) : 0;
+        document.getElementById('kpi-bottleneck-share').textContent = `${share}%`;
+        cardBn.classList.add('border-rose-500/40', 'bg-rose-950/10');
+      } else {
+        document.getElementById('kpi-bottleneck-name').textContent = '/';
+        document.getElementById('kpi-bottleneck-time').textContent = '0.0';
+        document.getElementById('kpi-bottleneck-share').textContent = '0%';
+        cardBn.classList.remove('border-rose-500/40', 'bg-rose-950/10');
+      }
+
+      // Render Table
+      const tbody = document.getElementById('steps-table-body');
+      tbody.innerHTML = '';
+      
+      steps.forEach((step, index) => {
+        const isBn = maxStep && step.id === maxStep.id;
+        const color = executorColors[step.executor] || executorColors['Robot'];
+
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-slate-800/40 transition ${isBn ? 'bg-rose-950/20' : ''}`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-2 font-mono-num text-slate-500">${index + 1}</td>
+          <td class="py-2.5 px-2 font-medium text-white">
+            ${step.name}
+            ${isBn ? '<span class="ml-1 text-[9px] px-1 py-0.2 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded">Ozko grlo</span>' : ''}
+          </td>
+          <td class="py-2.5 px-2">
+            <span class="inline-block px-2 py-0.5 text-[10px] rounded border ${color.badge} ${color.text}">${step.executor}</span>
+          </td>
+          <td class="py-2.5 px-2 text-right font-mono-num text-slate-200">${step.time.toFixed(1)}s</td>
+          <td class="py-2.5 px-2 text-center">
+            <button onclick="removeStep(${step.id})" class="text-slate-500 hover:text-rose-400 transition p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Render Gantt
+      const gantt = document.getElementById('gantt-container');
+      gantt.innerHTML = '';
+
+      if (steps.length === 0) {
+        gantt.innerHTML = '<div class="text-center py-8 text-xs text-slate-500">Vnesite korake procesa za prikaz časovnega poteka.</div>';
+      } else {
+        steps.forEach((step) => {
+          const pct = totalTime > 0 ? (step.time / totalTime) * 100 : 0;
+          const isBn = maxStep && step.id === maxStep.id;
+          const color = executorColors[step.executor] || executorColors['Robot'];
+
+          const row = document.createElement('div');
+          row.className = 'space-y-1';
+          row.innerHTML = `
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-medium flex items-center gap-1.5">
+                ${step.name} 
+                <span class="text-[10px] text-slate-500">(${step.executor})</span>
+              </span>
+              <span class="font-mono-num text-slate-400">${step.time.toFixed(1)}s (${pct.toFixed(1)}%)</span>
+            </div>
+            <div class="w-full bg-slate-950 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
+              <div class="h-full rounded-full transition-all duration-500 ${color.bg} ${isBn ? 'ring-2 ring-rose-400 ring-offset-1 ring-offset-slate-950 animate-pulse' : ''}" style="width: ${Math.max(pct, 1)}%"></div>
+            </div>
+          `;
+          gantt.appendChild(row);
+        });
+      }
+
+      // Update Summary Text
+      updateSummaryText(totalTime, pphTheo, pphReal, oee, shiftReal, maxStep);
+    }
+
+    function addStep(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById('input-name');
+      const timeInput = document.getElementById('input-time');
+      const execInput = document.getElementById('input-executor');
+
+      const name = nameInput.value.trim();
+      const time = parseFloat(timeInput.value);
+      const executor = execInput.value;
+
+      if (!name || isNaN(time) || time <= 0) return;
+
+      steps.push({
+        id: Date.now(),
+        name: name,
+        time: time,
+        executor: executor
+      });
+
+      nameInput.value = '';
+      timeInput.value = '';
+      nameInput.focus();
+      render();
+    }
+
+    function removeStep(id) {
+      steps = steps.filter(s => s.id !== id);
+      render();
+    }
+
+    function clearAllSteps() {
+      if (confirm('Res želiš izbrisati vse korake?')) {
+        steps = [];
+        render();
+      }
+    }
+
+    function loadSampleData() {
+      steps = [
+        { id: 1, name: "Naložitev surovca", time: 3.5, executor: "Operater" },
+        { id: 2, name: "Premik robota do vpenjala", time: 2.2, executor: "Robot" },
+        { id: 3, name: "Obdelava / Presanje", time: 11.5, executor: "Stroj" },
+        { id: 4, name: "Pnevmatski izmet", time: 1.2, executor: "Pnevmatski pogon" },
+        { id: 5, name: "Optična kontrola kvalitete", time: 2.8, executor: "Robot" },
+        { id: 6, name: "Razložitev in zlaganje", time: 3.8, executor: "Operater" }
+      ];
+      render();
+    }
+
+    function updateSummaryText(totalTime, pphTheo, pphReal, oee, shiftReal, maxStep) {
+      const summaryArea = document.getElementById('summary-text');
+      let txt = `==================================================\n`;
+      txt += ` TEHNIČNA ANALIZA TAKTA IN KAPACITETE CELICE\n`;
+      txt += `==================================================\n`;
+      txt += `• Skupni čas cikla (T_cikel) : ${totalTime.toFixed(2)} s\n`;
+      txt += `• Teoretična kapaciteta (PPH) : ${Math.floor(pphTheo)} kos/uro\n`;
+      txt += `• Ciljna učinkovitost (OEE)  : ${oee} %\n`;
+      txt += `• Realna pričakovana proizvod: ${Math.floor(pphReal)} kos/uro (${Math.floor(shiftReal)} kos/izmeno 8h)\n`;
+      if (maxStep) {
+        txt += `• Ozko grlo linije (Bottleneck): ${maxStep.name} (${maxStep.time.toFixed(1)} s, ${((maxStep.time/totalTime)*100).toFixed(1)}% cikla)\n`;
+      }
+      txt += `--------------------------------------------------\n`;
+      txt += `RAZČLENITEV OPERACIJ:\n`;
+      steps.forEach((s, idx) => {
+        txt += ` ${idx + 1}. [${s.executor}] ${s.name}: ${s.time.toFixed(1)} s\n`;
+      });
+      txt += `==================================================`;
+
+      summaryArea.value = txt;
+    }
+
+    function copySummary() {
+      const summaryArea = document.getElementById('summary-text');
+      summaryArea.select();
+      navigator.clipboard.writeText(summaryArea.value);
+
+      const toast = document.getElementById('toast');
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2000);
+    }
+
+    function exportCSV() {
+      if (steps.length === 0) return;
+      
+      let csv = '\uFEFF'; // UTF-8 BOM za pravilen prikaz v Excelu
+      csv += 'Zap st;Operacija;Izvajalec;Cas [s]\n';
+      
+      steps.forEach((s, i) => {
+        csv += `${i + 1};"${s.name.replace(/"/g, '""')}";"${s.executor}";${s.time.toString().replace('.', ',')}\n`;
+      });
+
+      const totalTime = steps.reduce((a, b) => a + b.time, 0);
+      csv += `;;Skupni cas [s];${totalTime.toString().replace('.', ',')}\n`;
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Analiza_takta_celice_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
