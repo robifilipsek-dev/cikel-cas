@@ -1,451 +1,435 @@
-<!DOCTYPE html>
-<html lang="sl" class="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analiza takta in kapacitete celice</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              500: '#3b82f6',
-              600: '#2563eb',
-            }
-          }
-        }
-      }
+<!doctype html><html lang="sl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3f5f7"><meta name="application-name" content="Cikel"><meta name="apple-mobile-web-app-title" content="Cikel"><meta name="description" content="Analiza cikla robotske celice, operacij, proizvodnega takta in ocenjene kapacitete."><title>Cikel — analiza celice in kapacitete</title><link id="favicon" rel="icon" type="image/svg+xml"><link id="touch-icon" rel="apple-touch-icon" sizes="180x180"><style>:root{color-scheme:light;--bg:#f3f5f7;--surface:#fff;--surface2:#f8fafb;--ink:#1e2c3b;--muted:#637386;--line:#dce3e9;--brand:#ce5519;--brand-soft:#fff0e7;--teal:#147c80;--teal-soft:#eaf6f4;--red:#b32d3b;--red-soft:#fff0f1;--amber:#895a14;--amber-soft:#fff6e5;--sidebar:#172632;--shadow:0 5px 24px #182b3c07;--plot:#e8edf1}html[data-theme=dark]{color-scheme:dark;--bg:#0e1720;--surface:#17232f;--surface2:#1c2a37;--ink:#e8eef5;--muted:#a8b9c9;--line:#314352;--brand:#ff9b61;--brand-soft:#362a26;--teal:#6dd3ce;--teal-soft:#193a3b;--red:#ffabb4;--red-soft:#40232c;--amber:#f4cd86;--amber-soft:#362f23;--sidebar:#0a121a;--shadow:none;--plot:#2b3c49}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 'Segoe UI',system-ui,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}a{color:var(--teal);text-underline-offset:3px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--teal);outline-offset:3px}svg.icon{width:20px;height:20px;flex-shrink:0;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}button .icon{width:17px;height:17px}.sidebar{width:234px;position:fixed;inset:0 auto 0 0;background:var(--sidebar);color:#e3edf5;display:flex;flex-direction:column;padding:28px 18px;z-index:10}.brand{display:flex;align-items:center;gap:11px;padding:0 9px 29px}.brand-symbol{background:#ff955c;color:#162632;border-radius:11px;padding:9px;display:flex}.brand-symbol .icon{width:27px;height:27px}.brand-name{font-size:21px;font-weight:750;letter-spacing:-.7px}.brand small{display:block;color:#9eb3c4;font-size:11px;letter-spacing:1px}.nav-caption{font-size:10px;font-weight:700;letter-spacing:1.5px;color:#91a7b8;margin:12px 12px}.nav-btn{width:100%;display:flex;align-items:center;text-align:left;gap:11px;min-height:64px;border:0;background:none;color:#b8cbd9;padding:10px 12px;margin:3px 0;border-radius:9px}.nav-btn b{display:block;font-size:13px;font-weight:650}.nav-btn small{display:block;font-size:10px;opacity:.8;margin-top:2px}.nav-btn:hover{background:#ffffff08}.nav-btn[aria-selected=true]{background:#293a46;color:#ffb48a;box-shadow:inset 3px 0 #ff955c}.sidebar-bottom{margin-top:auto;font-size:11px;padding:24px 12px 0;color:#9eb3c4}.offline-dot{display:inline-block;width:6px;height:6px;border-radius:10px;background:#6cceb0;margin-right:7px}.app{margin-left:234px}.topbar{min-height:76px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.crumb{color:var(--muted);font-size:12px}.crumb b{color:var(--ink);font-weight:600}.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 13px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:600;font-size:12px;white-space:nowrap}.btn:hover{border-color:var(--muted);background:var(--surface2)}.btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}html[data-theme=dark] .btn-primary{color:#201a16}.btn-primary:hover{background:var(--brand);filter:brightness(1.08)}.btn-quiet{background:transparent;border-color:transparent;color:var(--muted)}.select-compact{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px;color:var(--ink);font-size:12px;min-height:40px}main{max-width:1510px;margin:auto;padding:28px 34px 38px}.project-row{display:grid;grid-template-columns:1.5fr 1fr .6fr auto;gap:13px;align-items:end;margin-bottom:28px}.project-row label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}.project-row input{padding:8px 10px;min-height:37px;font-size:12px;background:var(--surface)}input,select,textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;background:var(--surface2);color:var(--ink);padding:10px 11px;min-height:43px}input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}input:disabled{opacity:.55}label{display:block;font-size:12px;font-weight:600}label>input,label>select,label>textarea{margin-top:6px}label .unit{color:var(--muted);font-weight:400}.field small,.hint{display:block;color:var(--muted);font-size:11px;font-weight:400;margin-top:5px;line-height:1.5}.field .error{color:var(--red);min-height:0}.field.invalid input{border-color:var(--red);background:var(--red-soft)}.field{min-width:0}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.full{grid-column:1/-1}.section-heading{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:22px}h1{font-size:28px;line-height:1.25;font-weight:720;letter-spacing:-.8px;margin:0 0 7px}h2{font-size:15px;font-weight:700;margin:0}h3{font-size:12px;margin:0 0 10px;font-weight:700}.section-heading p{margin:0;color:var(--muted);font-size:12px;max-width:680px}.section-actions{display:flex;gap:4px}.pill{font-size:10px;font-weight:650;display:inline-flex;align-items:center;gap:5px;border-radius:5px;padding:4px 7px;color:var(--muted);background:var(--surface2);border:1px solid var(--line)}.pill.warn{background:var(--amber-soft);border-color:transparent;color:var(--amber)}.pill.ok{background:var(--teal-soft);color:var(--teal);border-color:transparent}.workspace{display:grid;grid-template-columns:minmax(300px,.86fr) minmax(340px,1.14fr);gap:21px;align-items:start}.stack{display:flex;flex-direction:column;gap:18px}.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}.card-head{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}.step-title{display:flex;align-items:center;gap:8px}.step-num{border:1px solid var(--line);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:6px;font-size:11px}.card-body{padding:0 20px 20px}.card-body>p:first-child{margin-top:0}.card-note{font-size:11px;color:var(--muted);padding:11px 20px;border-top:1px solid var(--line);background:var(--surface2)}.segment{display:flex;border:1px solid var(--line);padding:3px;border-radius:8px;background:var(--surface2);gap:3px;margin-bottom:16px}.segment button{flex:1;border:0;border-radius:5px;min-height:32px;background:transparent;color:var(--muted);font-size:11px;font-weight:600;padding:5px}.segment button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 5px #0000000b}.inline-note{font-size:11px;color:var(--muted);margin:10px 0 0;line-height:1.55}.notice{display:flex;gap:8px;padding:11px 13px;border-radius:7px;background:var(--amber-soft);color:var(--amber);font-size:11px;line-height:1.6}.notice .icon{width:16px;height:16px;margin-top:1px}.notice.neutral{background:var(--surface2);color:var(--muted)}.notice.info{background:var(--teal-soft);color:var(--teal)}.result-card{border-top:3px solid var(--brand)}.result-main{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:6px 22px 20px}.result-label{font-size:11px;color:var(--muted);margin-bottom:3px}.big-number{font-size:52px;font-weight:750;line-height:1.1;letter-spacing:-2px;font-variant-numeric:tabular-nums}.big-number .u{font-size:18px;letter-spacing:0;font-weight:500;color:var(--muted);margin-left:6px}.result-aside{text-align:right}.result-aside .value{font-size:23px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}.result-aside small{font-size:10px;color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);background:var(--surface2)}.metric{padding:12px 18px;border-right:1px solid var(--line)}.metric:last-child{border:0}.metric small{font-size:10px;color:var(--muted);display:block}.metric b{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}.verdict{padding:12px 20px;border-top:1px solid var(--line);font-size:12px;background:var(--surface2);display:flex;gap:8px;align-items:flex-start}.verdict.good{background:var(--teal-soft);color:var(--teal)}.verdict.bad{background:var(--red-soft);color:var(--red)}.verdict.warn{background:var(--amber-soft);color:var(--amber)}.verdict .icon{width:17px;height:17px;margin-top:1px}.diagram{padding:3px 10px;background:var(--surface)}.diagram svg{width:100%;height:auto;display:block;color:var(--ink);font-family:'Segoe UI',system-ui,sans-serif}.diagram .floor{stroke:var(--line);stroke-width:2}.diagram .structure{fill:var(--plot);stroke:var(--muted);stroke-width:1.5}.diagram .beam{stroke:var(--teal);stroke-width:3;stroke-dasharray:5 5}.diagram .hazard{fill:var(--red-soft);stroke:var(--red);stroke-width:1.5}.diagram .dimension{stroke:var(--brand);stroke-width:1.3;fill:none}.diagram .measure{fill:var(--brand);font-size:12px;font-weight:700}.diagram .caption{fill:var(--muted);font-size:10px}.diagram .body-line{stroke:var(--muted);stroke-width:2;fill:none;stroke-linecap:round}.diagram .material{fill:var(--teal-soft);stroke:var(--teal);stroke-width:1.3}.diagram-foot{display:flex;justify-content:space-between;padding:0 20px 13px;color:var(--muted);font-size:10px}.formula{font:12px/1.8 ui-monospace,Consolas,monospace;background:var(--surface2);border:1px solid var(--line);border-radius:7px;padding:12px;overflow-wrap:anywhere;margin-bottom:12px}.steps{list-style:none;margin:0;padding:0}.steps li{display:flex;justify-content:space-between;gap:12px;font-size:11px;padding:7px 0;border-bottom:1px solid var(--line)}.steps li:last-child{border:0}.steps span{color:var(--muted)}.steps b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}.check{display:flex;gap:9px;align-items:flex-start;font-size:11px;font-weight:400;margin:12px 0;cursor:pointer}.check input{width:15px;height:15px;min-height:0;margin:2px 0 0;accent-color:var(--teal);flex-shrink:0}.check b{font-weight:650}.details-head{padding:15px 20px;cursor:pointer;font-size:12px;font-weight:650;display:list-item}.details-head::marker{color:var(--muted)}details.card .card-body{padding-top:6px}.doc-status{color:var(--muted);font-size:11px;padding-top:9px;border-top:1px solid var(--line)}.bottom-note{display:flex;align-items:center;gap:8px;font-size:11px;line-height:1.6;color:var(--muted);margin-top:24px}.bottom-note .icon{width:16px;height:16px;flex-shrink:0}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:11px}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;font-variant-numeric:tabular-nums}th{font-weight:600;color:var(--muted);background:var(--surface2)}tr.selected{background:var(--brand-soft);color:var(--brand)}.table-note{font-size:10px;color:var(--muted);margin-top:10px}.empty-text{font-size:12px;color:var(--muted);padding:0 22px 20px}.strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.toolbar-group{display:flex;gap:7px;flex-wrap:wrap}.time-range{font-size:26px;font-weight:700;letter-spacing:-.6px}.timeline-row{margin-top:14px}.timeline-title{display:flex;justify-content:space-between;font-size:11px}.timeline-title span{color:var(--muted)}.track{height:5px;border-radius:5px;background:var(--plot);margin-top:6px;overflow:hidden}.track>i{display:block;background:var(--teal);height:100%;min-width:3px}.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.help-grid p{font-size:12px;color:var(--muted)}.source-list{padding-left:18px;color:var(--muted);font-size:12px}.source-list li{margin:10px 0}.toast{position:fixed;bottom:22px;left:calc(50% + 117px);transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:9px;z-index:50;box-shadow:0 8px 30px #0003;max-width:calc(100% - 30px);font-size:12px}.toast:empty{display:none}[hidden]{display:none!important}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);max-width:880px;width:calc(100% - 32px);max-height:90vh;padding:24px}dialog::backdrop{background:#0b1c2b88;backdrop-filter:blur(3px)}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.report-content{font-size:12px}.report-content h1{font-size:24px}.report-content h2{font-size:17px;margin:24px 0 9px}.report-content p{white-space:pre-wrap;overflow-wrap:anywhere}.report-content th{min-width:150px}.report-content td{overflow-wrap:anywhere}.report-content .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.report-content .report-status{background:var(--surface2);padding:10px;border:1px solid var(--line)}#print-report{display:none}.storage-label{margin:0;font-size:10px;white-space:nowrap}.source-tag{color:var(--muted);font-size:10px}.mode-info{margin-bottom:14px}.muting-type{font-size:10px;color:var(--muted)}.section-hidden{display:none}footer{display:flex;justify-content:space-between;gap:12px;font-size:10px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:14px}@media(min-width:1500px){main{padding:34px 42px}.topbar{padding-left:42px;padding-right:42px}}@media(max-width:1120px){.sidebar{width:200px;padding-left:12px;padding-right:12px}.app{margin-left:200px}.topbar{padding:14px 22px}main{padding:24px 22px}.workspace{grid-template-columns:minmax(280px,.95fr) minmax(300px,1.05fr);gap:15px}.card-body{padding-left:16px;padding-right:16px}.card-head{padding-left:16px;padding-right:16px}.topbar .crumb{display:none}.project-row{grid-template-columns:1.3fr 1fr .6fr}.project-row>.storage-label{grid-column:1/-1}.toast{left:calc(50% + 100px)}.big-number{font-size:44px}.metric{padding:12px}.section-actions{flex-wrap:wrap;justify-content:flex-end}}@media(max-width:900px){.sidebar{width:74px;padding:20px 8px}.brand{padding:0 6px 22px}.brand>div:last-child,.nav-caption,.nav-btn>span,.sidebar-bottom{display:none}.nav-btn{justify-content:center;min-height:50px;padding:10px}.nav-btn>.icon{width:23px;height:23px}.brand-symbol{padding:8px;border-radius:10px}.brand-symbol .icon{width:23px;height:23px}.app{margin-left:74px}.toast{left:calc(50% + 37px)}}@media(max-width:730px){.sidebar{position:static;width:auto;padding:12px 14px;display:block}.brand{padding:0 0 12px;gap:8px}.brand>div:last-child{display:block}.brand-name{font-size:17px}.brand small{font-size:9px}.brand-symbol{padding:5px}.brand-symbol .icon{width:20px;height:20px}.sidebar nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.nav-btn{min-height:48px;margin:0;padding:7px 3px;flex-direction:column;gap:2px;border-radius:7px}.nav-btn>span{display:block;text-align:center}.nav-btn b{font-size:10px;line-height:1.3}.nav-btn small{display:none}.nav-btn>.icon{width:17px;height:17px}.nav-btn[aria-selected=true]{box-shadow:inset 0 -2px #ff955c}.app{margin:0}.topbar{min-height:0;padding:10px 14px}.top-actions{gap:5px;width:100%}.topbar .btn{padding:7px 9px;font-size:11px;min-height:36px}.topbar .select-compact{margin-left:auto;min-height:36px;padding:7px;font-size:11px}.topbar .save-html{display:none}main{padding:19px 14px}.project-row{gap:9px;margin-bottom:23px;grid-template-columns:1fr 1fr}.project-row label:first-child{grid-column:1/-1}.project-row>.storage-label{grid-column:auto;white-space:normal;align-self:center}.workspace{grid-template-columns:1fr;gap:16px}.section-heading{gap:10px;margin-bottom:18px}h1{font-size:25px}.section-heading p{font-size:11px}.section-actions{gap:0}.section-actions .btn{font-size:10px;min-height:34px;padding:5px 8px}.section-actions .btn .icon{width:13px;height:13px}.stack{gap:14px}.card-head{padding-top:16px}h2{font-size:14px}.big-number{font-size:48px}.help-grid{grid-template-columns:1fr}.toast{left:50%;width:max-content}.bottom-note{align-items:flex-start}footer{display:block}.report-content .report-grid{grid-template-columns:1fr}}@media(max-width:360px){.fields{grid-template-columns:1fr}.full{grid-column:auto}.section-heading{display:block}.section-actions{justify-content:flex-start;margin-top:10px}.top-actions{gap:4px}.topbar .btn{font-size:10px;padding:7px}.metric{padding:9px}.metric b{font-size:14px}.nav-btn b{font-size:9px}}@media print{@page{size:A4;margin:15mm}body{background:white!important;color:#172632!important;font:10pt/1.5 Arial,sans-serif}.sidebar,.app,.toast,dialog{display:none!important}#print-report{display:block!important}#print-report h1{font-size:22pt}#print-report h2{font-size:14pt;break-after:avoid;margin-top:20pt}#print-report section{break-inside:auto}#print-report table{font-size:9pt;width:100%;table-layout:fixed}#print-report th{width:42%;min-width:0}#print-report th,#print-report td{padding:5pt;border-bottom:1px solid #ccc;background:white;color:#172632;overflow-wrap:anywhere}#print-report p{white-space:pre-wrap;overflow-wrap:anywhere}#print-report tr{break-inside:avoid}#print-report .report-status{border:1px solid #bbb;background:#f7f7f7;padding:8pt}#print-report a{color:#174852}#print-report .report-grid{display:block}}
+.top-actions>.select-compact{width:auto;flex:0 0 auto}.top-actions{flex-wrap:nowrap}.report-content a{overflow-wrap:anywhere}
+@media(max-width:730px){.top-actions{flex-wrap:wrap}.top-actions>.select-compact{margin-left:0}.top-actions>.btn:last-child{margin-left:auto}}
+@media(max-width:730px){.workspace{display:flex;flex-direction:column;align-items:stretch}.workspace>.stack{display:contents}.workspace .result-card{order:-1}}
+.theme-switch{display:inline-flex;flex-shrink:0;padding:3px;gap:2px;border:1px solid var(--line);border-radius:9px;background:var(--surface2)}.theme-switch button{display:flex;align-items:center;justify-content:center;width:34px;height:32px;border:0;border-radius:6px;background:transparent;color:var(--muted)}.theme-switch button:hover{color:var(--ink)}.theme-switch button[aria-pressed=true]{background:var(--surface);color:var(--brand);box-shadow:0 1px 4px #00000012}.theme-switch .icon{width:18px;height:18px}.body-access{padding:12px 20px;border-top:1px solid var(--line);background:var(--surface2)}.body-access-item+.body-access-item{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}.body-access-item>span{display:block;font-size:9px;letter-spacing:.5px;color:var(--muted)}.body-access-item>b{display:block;font-size:13px;margin-top:3px;font-weight:650}.body-access-item>p{font-size:11px;color:var(--muted);margin:3px 0 0}.body-access-note{font-size:10px;color:var(--muted);margin:10px 0 0;line-height:1.5}.access-table th:first-child,.access-table td:first-child{white-space:nowrap}.access-table td:nth-child(2){min-width:110px}.access-table th small{display:block;font-size:9px;font-weight:400}.diagram .diagram-title{font-size:11px;font-weight:600;fill:var(--ink)}.diagram .open-label{font-size:10px;font-weight:700;fill:var(--teal);letter-spacing:.6px}.diagram .entry-arrow{fill:none;stroke:var(--teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.diagram .inlet-plane{fill:none;stroke:var(--brand);stroke-width:1.5;stroke-dasharray:3 5}.diagram .leader{fill:none;stroke:var(--muted);stroke-width:1}.diagram .caption{font-size:10px}
+@media(max-width:730px){.theme-switch{margin-left:auto}.top-actions>.btn:last-child{margin-left:0}.theme-switch button{width:29px;height:28px}.body-access{padding:12px 16px}}
+.diagram-pair{display:grid;grid-template-columns:190fr 350fr;align-items:center}.diagram-pair>svg{min-width:0}@media(max-width:730px){.diagram-pair{grid-template-columns:1fr}.diagram-pair>svg:first-child{max-width:220px;margin:auto}.diagram-pair>svg:last-child{max-width:520px;margin:auto}.diagram-pair .caption{font-size:12px}.diagram-pair .diagram-title{font-size:13px}.diagram-pair .measure{font-size:14px}.diagram-pair .open-label{font-size:12px}}
+.diagram .robot-base{fill:var(--muted);stroke:var(--ink);stroke-width:1.2}.diagram .robot-shell{fill:none;stroke:var(--ink);stroke-width:16;stroke-linecap:round;stroke-linejoin:round}.diagram .robot-arm{fill:none;stroke:var(--brand);stroke-width:12;stroke-linecap:round;stroke-linejoin:round}.diagram .robot-shell.robot-wrist{stroke-width:12}.diagram .robot-arm.robot-wrist{stroke-width:8}.diagram .robot-joint{fill:var(--surface2);stroke:var(--ink);stroke-width:1.6}.diagram .robot-pivot{fill:var(--brand);stroke:var(--ink);stroke-width:.8}.diagram .robot-tool{fill:var(--muted);stroke:var(--ink);stroke-width:1.1}.diagram .robot-gripper{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.diagram .robot-detail{fill:none;stroke:var(--surface);stroke-width:1;opacity:.8}.formula-readable{font-family:inherit;line-height:1.8}.notation-list{list-style:none;padding:0;margin:14px 0}.notation-list li{display:grid;grid-template-columns:45px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:11px}.notation-list li:last-child{border:0}.notation-list span{color:var(--muted)}.standard-formula{font-size:14px}.standard-formula sub,.notation-list sub{font-size:.7em;line-height:0}
+
+.nav-btn[aria-current=true]{background:#293a46;color:#ffb48a;box-shadow:inset 3px 0 #ff955c}.anchor{scroll-margin-top:22px}.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:15px}.kpi{padding:18px 19px;border-top:3px solid transparent}.kpi.accent{border-top-color:var(--brand)}.kpi-label{font-size:10px;color:var(--muted);font-weight:650;letter-spacing:.3px}.kpi-value{display:flex;align-items:baseline;gap:7px;margin-top:9px;font-size:32px;font-weight:750;letter-spacing:-1px;font-variant-numeric:tabular-nums;flex-wrap:wrap;line-height:1.25}.kpi-value small{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}.kpi p{font-size:10px;color:var(--muted);margin:8px 0 0}.cycle-workspace{display:grid;grid-template-columns:minmax(340px,.96fr) minmax(360px,1.04fr);gap:20px;margin-top:22px;align-items:start}.goal-status{font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:13px 16px;display:flex;align-items:flex-start;gap:9px}.goal-status.good{background:var(--teal-soft);border-color:transparent;color:var(--teal)}.goal-status.bad{background:var(--amber-soft);border-color:transparent;color:var(--amber)}.goal-status .icon{width:18px;height:18px;margin-top:1px}#step-form{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:14px;margin-top:16px}.form-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:12px}.form-heading .btn{padding:4px;font-size:10px;min-height:28px}.add-btn{width:100%;margin-top:5px}.form-error{font-size:11px;color:var(--red);margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}.form-error:empty{display:none}.field .error{font-size:10px;color:var(--red)}.operation-list{margin-top:18px}.operation-row{border:1px solid var(--line);border-radius:8px;padding:11px;margin:9px 0;background:var(--surface);display:grid;grid-template-columns:23px minmax(0,1fr) auto;gap:9px;align-items:start}.operation-row.editing{border-color:var(--brand);background:var(--brand-soft)}.operation-row .order{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:25px}.operation-name{font-size:12px;font-weight:650;overflow-wrap:anywhere}.operation-info{font-size:10px;color:var(--muted);display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:3px;overflow-wrap:anywhere}.operation-duration{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}.operation-duration small{font-size:10px;color:var(--muted);font-weight:400}.row-actions{grid-column:2/-1;display:flex;gap:3px;justify-content:flex-end}.icon-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:5px;color:var(--muted);background:transparent}.icon-btn .icon{width:14px;height:14px}.icon-btn:hover{background:var(--surface2);color:var(--ink)}.icon-btn.danger:hover{color:var(--red);background:var(--red-soft)}.type-dot{width:7px;height:7px;border-radius:3px;display:inline-block;flex-shrink:0}.robot{--series:#3e81bf}.machine{--series:#289d83}.operator{--series:#c88b26}.pneumatic{--series:#8c6bc1}.other{--series:#698393}html[data-theme=dark] .robot{--series:#7ab4e8}html[data-theme=dark] .machine{--series:#56c9a9}html[data-theme=dark] .operator{--series:#e5b34b}html[data-theme=dark] .pneumatic{--series:#b39be4}html[data-theme=dark] .other{--series:#9db5c5}.type-dot{background:var(--series)}.legend{display:flex;gap:11px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-bottom:15px}.legend>span{display:inline-flex;align-items:center;gap:5px}.chart-scroll{overflow:auto;padding-bottom:7px}#timeline:not(:empty){min-width:630px}.timeline-header,.timeline-row{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;margin:0}.timeline-header{padding-bottom:8px;color:var(--muted);font-size:10px}.time-axis{display:flex;justify-content:space-between;position:relative}.timeline-row{padding:7px 0;cursor:pointer;border-bottom:1px solid var(--line);min-height:44px;align-items:center}.timeline-row:hover{background:var(--surface2)}.timeline-name{font-size:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.timeline-name small{font-size:9px;display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis}.timeline-lane{position:relative;height:30px;background:repeating-linear-gradient(to right,transparent 0,transparent calc(25% - 1px),var(--line) calc(25% - 1px),var(--line) 25%);border-radius:3px}.timeline-bar{position:absolute;top:5px;height:20px;background:var(--series);border-radius:3px;min-width:1px}.timeline-bar span{display:block;text-align:center;font-size:10px;font-weight:700;color:white;line-height:20px;overflow:hidden;white-space:nowrap}html[data-theme=dark] .timeline-bar span{color:#102132}.phase-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}.phase-tag{background:var(--surface2);border:1px solid var(--line);border-radius:5px;font-size:10px;color:var(--muted);padding:4px 7px}.longest{padding:12px;border:1px solid var(--line);border-radius:7px;margin-top:15px}.longest small{display:block;font-size:10px;color:var(--muted)}.longest b{font-size:12px;font-weight:650;overflow-wrap:anywhere}.resource-row{margin:0 0 16px}.resource-row:last-child{margin:0}.resource-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:11px;margin-bottom:5px}.resource-title span{overflow-wrap:anywhere}.resource-title b{font-variant-numeric:tabular-nums;white-space:nowrap}.resource-track{height:5px;background:var(--plot);border-radius:3px;overflow:hidden}.resource-track i{display:block;background:var(--series);height:100%}.resource-row small{font-size:10px;color:var(--muted);display:block;margin-top:4px}.empty-state{text-align:center;padding:25px 12px;color:var(--muted);font-size:12px;background:var(--surface2);border:1px dashed var(--line);border-radius:8px}.scenario-result{font-size:12px;padding:13px 0;color:var(--muted);line-height:1.8}.scenario-result b{color:var(--ink);font-size:17px}.report-section{margin-top:22px}.report-section textarea{font:11px/1.7 ui-monospace,Consolas,monospace}.calc-list{list-style:none;margin:0;padding:0}.calc-list li{display:flex;justify-content:space-between;gap:12px;font-size:11px;padding:8px 0;border-bottom:1px solid var(--line)}.calc-list li:last-child{border:0}.calc-list span{color:var(--muted)}.calc-list b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}.report-content .small-note{font-size:10px;color:var(--muted)}.report-content table.steps-report th{min-width:0;width:auto}.report-content table.steps-report td{overflow-wrap:anywhere}.report-content table.steps-report th:first-child{width:28px}.report-content table.steps-report td:first-child{width:28px}#model,#basis{font-size:12px}.report-content h3{margin-top:18px}#undo-btn:disabled{opacity:.35}#oee:disabled{opacity:.5}.sample-notice{font-size:11px;color:var(--amber)}@media(max-width:1250px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:30px}.cycle-workspace{grid-template-columns:minmax(300px,.96fr) minmax(320px,1.04fr)}.project-row{grid-template-columns:1.3fr 1fr .6fr}.project-row>.storage-label{grid-column:1/-1}}@media(max-width:1030px){.cycle-workspace{grid-template-columns:1fr}.cycle-workspace>.stack{gap:18px}.cycle-workspace>.stack:last-child{margin-top:0}}@media(max-width:730px){.nav-btn[aria-current=true]{box-shadow:inset 0 -2px #ff955c}.kpi-grid{gap:9px}.kpi{padding:14px 12px}.kpi-label{font-size:9px}.kpi-value{font-size:26px;gap:4px}.kpi-value small{font-size:10px}.kpi p{font-size:9px}.cycle-workspace{gap:14px}.project-row{grid-template-columns:1fr 1fr}.project-row>.storage-label{grid-column:auto}.top-actions>.btn:last-child{margin-left:0}.goal-status{font-size:11px}.operation-name{font-size:12px}.card-head .toolbar-group .btn{font-size:10px;padding:6px;min-height:30px}.report-content .table-scroll{overflow:auto}.chart-scroll{margin-right:-5px}.form-heading{flex-wrap:wrap}}@media(max-width:360px){.kpi-value{font-size:24px}.section-actions{justify-content:flex-start}.resource-title{font-size:10px}}@media print{#print-report .steps-report{font-size:8pt}#print-report .steps-report th{width:auto;min-width:0}#print-report .steps-report td{padding:4pt}#print-report .steps-report tr{break-inside:avoid}.report-content .table-scroll{overflow:visible}}
+.inline-link{border:0;padding:0;background:none;color:var(--teal);font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}#timeline:has(.empty-state){min-width:0}
+.cycle-workspace>.stack{min-width:0}.cycle-workspace .card{min-width:0}.chart-scroll{max-width:100%}#timeline:not(:empty){min-width:520px}#timeline:has(.empty-state){min-width:0}
+.chart-hint{display:none}@media(max-width:730px){.chart-hint{display:block}}
+</style></head><body>
+<aside class="sidebar"><div class="brand"><div class="brand-symbol" data-icon="cycle"></div><div><div class="brand-name">Cikel</div><small>PROJEKTANTSKA ORODJA</small></div></div><div class="nav-caption">ANALIZA CELICE</div><nav aria-label="Vsebina aplikacije"><button class="nav-btn" data-section="overview" aria-current="true"><i data-icon="dashboard"></i><span><b>Pregled celice</b><small>Cikel in ciljna proizvodnja</small></span></button><button class="nav-btn" data-section="operations"><i data-icon="list"></i><span><b>Operacije</b><small>Časi in izvajalci</small></span></button><button class="nav-btn" data-section="planning"><i data-icon="calendar"></i><span><b>Plan proizvodnje</b><small>Izmena, takt in OEE</small></span></button><button class="nav-btn" data-section="report"><i data-icon="file"></i><span><b>Poročilo</b><small>Povzetek in izvoz</small></span></button></nav></aside>
+<div class="app"><header class="topbar"><div class="crumb">Projektantska orodja <span style="margin:0 8px">/</span><b>Cikel in kapaciteta</b></div><div class="top-actions"><button class="btn" id="save-project"><i data-icon="save"></i>Shrani projekt</button><button class="btn" id="load-project"><i data-icon="upload"></i>Odpri</button><button class="btn btn-primary" id="open-report"><i data-icon="file"></i>Poročilo</button><div class="theme-switch" role="group" aria-label="Barvna tema"><button id="theme-light" aria-label="Svetla tema" title="Svetla tema" aria-pressed="false"><i data-icon="sun"></i></button><button id="theme-dark" aria-label="Temna tema" title="Temna tema" aria-pressed="false"><i data-icon="moon"></i></button></div><button class="btn btn-quiet" id="help-btn" aria-label="Metode in pomoč" title="Metode in pomoč"><i data-icon="help"></i></button></div><input type="file" id="import" accept=".json,application/json" hidden></header>
+<main><div class="project-row"><label for="project">Projekt / naprava<input id="project" data-project maxlength="200" placeholder="Oznaka robotske celice"></label><label for="author">Projektant<input id="author" data-project maxlength="200" placeholder="Ime in priimek"></label><label for="revision">Revizija<input id="revision" data-project maxlength="80" placeholder="npr. A01"></label><label class="check storage-label"><input type="checkbox" id="remember"><span>Shranjuj v tem brskalniku</span></label></div>
+<section id="overview" class="anchor"><div class="section-heading"><div><div class="strip" style="margin-bottom:8px"><span class="pill" id="model-pill">Zaporedni cikel</span><span class="pill warn" id="sample-pill" hidden>Vzorčni podatki</span></div><h1>Analiza cikla in kapacitete</h1><p>Od posamezne operacije do preglednega časovnega poteka in ocene proizvodnje.</p></div><div class="section-actions"><button class="btn btn-quiet" id="sample-btn"><i data-icon="sample"></i>Vzorčni proces</button><button class="btn btn-quiet" id="new-btn"><i data-icon="reset"></i>Nov projekt</button></div></div>
+<div class="kpi-grid"><article class="card kpi"><div class="kpi-label">Cikel celice</div><div class="kpi-value"><span id="kpi-cycle">—</span><small>s</small></div><p id="cycle-note">Dodajte operacije.</p></article><article class="card kpi"><div class="kpi-label" id="theory-label">Teoretična kapaciteta</div><div class="kpi-value"><span id="kpi-theory">—</span><small>kos/h</small></div><p id="theory-note">Brez izgub, na uro proizvodnega časa.</p></article><article class="card kpi accent"><div class="kpi-label">Ocena dobrih kosov / izmeno</div><div class="kpi-value"><span id="kpi-shift">—</span><small>kos</small></div><p id="shift-note">Dopolnite plan proizvodnje.</p></article><article class="card kpi"><div class="kpi-label">Zahtevani takt</div><div class="kpi-value"><span id="kpi-takt">—</span><small>s/kos</small></div><p id="takt-note">Vnesite povpraševanje za izmeno.</p></article></div><div id="goal-status" class="goal-status" role="status"></div></section>
+<div class="cycle-workspace"><div class="stack"><section class="card anchor" id="operations"><div class="card-head"><h2>Operacije procesa</h2><div class="toolbar-group"><button class="btn btn-quiet" id="undo-btn" disabled title="Razveljavi zadnjo spremembo operacij"><i data-icon="undo"></i>Razveljavi</button><button class="btn btn-quiet" id="clear-btn" title="Odstrani vse operacije" aria-label="Odstrani vse operacije"><i data-icon="trash"></i></button></div></div><div class="card-body"><label for="model">Način izvajanja</label><select id="model" data-setting><option value="sequential">Zaporedno — operacija za operacijo</option><option value="phases">Vzporedne faze — po izvajalcih</option></select><p class="inline-note" id="model-note"></p>
+<form id="step-form" novalidate><div class="form-heading"><b id="form-title">Nova operacija</b><button type="button" class="btn btn-quiet" id="cancel-edit" hidden>Prekliči urejanje</button></div><div class="fields"><div class="field full"><label for="step-name">Naziv operacije</label><input id="step-name" maxlength="200" placeholder="npr. Premik robota do vpenjala" autocomplete="off"></div><div class="field"><label for="step-time">Čas [s]</label><input id="step-time" inputmode="decimal" placeholder="npr. 2,500" maxlength="24" autocomplete="off"><small>Do tri decimalna mesta; vejica ali pika.</small></div><div class="field"><label for="step-type">Tip izvajalca</label><select id="step-type"><option value="robot">Robot</option><option value="machine">Stroj</option><option value="operator">Operater</option><option value="pneumatic">Pnevmatika</option><option value="other">Drugo</option></select></div><div class="field"><label for="step-resource">Oznaka sredstva</label><input id="step-resource" maxlength="80" placeholder="Robot 1" autocomplete="off"><small>Ista oznaka pomeni isto sredstvo.</small></div><div class="field" id="phase-field" hidden><label for="step-phase">Faza</label><input id="step-phase" inputmode="numeric" value="1" maxlength="3"><small>Iste faze se lahko prekrivajo.</small></div></div><p class="form-error" id="form-error" role="alert"></p><button class="btn btn-primary add-btn" type="submit"><i data-icon="plus"></i><span id="submit-label">Dodaj operacijo</span></button></form>
+<div class="operation-list" id="operation-list"></div><p class="inline-note" id="operations-note"></p></div></section>
+<section class="card anchor" id="planning"><div class="card-head"><h2>Plan proizvodnje</h2><span class="pill" id="net-time-pill">— min</span></div><div class="card-body"><div class="fields"><div class="field"><label for="shiftMinutes">Dolžina izmene [min]</label><input id="shiftMinutes" data-setting inputmode="decimal" value="480" maxlength="24"><small>8 ur = 480 minut.</small><small class="error" id="err-shiftMinutes"></small></div><div class="field"><label for="breakMinutes">Čas brez načrtovane proizvodnje [min]</label><input id="breakMinutes" data-setting inputmode="decimal" value="30" maxlength="24"><small>Npr. odmori; ne odštevajte izgub, zajetih v OEE.</small><small class="error" id="err-breakMinutes"></small></div><div class="field"><label for="piecesPerCycle">Kosov na cikel</label><input id="piecesPerCycle" data-setting inputmode="numeric" value="1" maxlength="12"><small>Npr. večgnezdno orodje ali hkratni izhod.</small><small class="error" id="err-piecesPerCycle"></small></div><div class="field"><label for="demand">Povpraševanje [dobrih kosov / izmeno]</label><input id="demand" data-setting inputmode="numeric" placeholder="Neobvezno" maxlength="12"><small>Iz tega se določi zahtevani takt.</small><small class="error" id="err-demand"></small></div><div class="field full"><label for="basis">Osnova vnesenega cikla</label><select id="basis" data-setting><option value="ideal">Idealni cikel + predpostavljeni OEE</option><option value="effective">Efektivni cikel dobrih kosov — izgube že vključene</option></select></div><div class="field"><label for="oee">Predpostavljeni OEE [%]</label><input id="oee" data-setting inputmode="decimal" value="85" maxlength="24"><small>0–100 %. Gre za predpostavko, ne izmerjen OEE.</small><small class="error" id="err-oee"></small></div></div><div class="notice neutral" id="basis-note" style="margin-top:15px"></div><p class="form-error" id="plan-errors" role="alert"></p></div></section></div>
+<div class="stack"><section class="card"><div class="card-head"><h2>Časovni potek operacij</h2><span class="source-tag">Začetek → konec cikla</span></div><div class="card-body"><div class="legend" id="legend"></div><div class="chart-scroll"><div id="timeline"></div></div><p class="inline-note chart-hint">Za ogled celotnega cikla časovnico premaknite vodoravno.</p><div id="schedule-error" class="form-error" role="alert"></div><div id="phase-summary"></div><div class="longest" id="longest"></div><p class="inline-note">Klik na vrstico odpre urejanje. Časi vključujejo en celoten cikel; naslednji cikel se začne šele po njegovem zaključku.</p></div></section>
+<section class="card"><div class="card-head"><h2>Zasedenost sredstev</h2><span class="source-tag">Znotraj prikazanega cikla</span></div><div class="card-body" id="resources"></div></section>
+<details class="card"><summary class="details-head">Kaj če spremenim čas operacije?</summary><div class="card-body"><div class="fields"><div class="field"><label for="scenario-step">Izbrana operacija</label><select id="scenario-step"></select></div><div class="field"><label for="scenario-time">Nov čas [s]</label><input id="scenario-time" inputmode="decimal" maxlength="24" placeholder="Novi čas operacije"></div></div><div id="scenario-result" class="scenario-result"></div><button class="btn" id="scenario-apply" disabled>Uporabi novi čas</button><p class="inline-note">Primerjava spremeni samo eno trajanje in ponovno izračuna isti model. Ostali časi, izvajalci in OEE ostanejo enaki.</p></div></details>
+<section class="card"><div class="card-head"><h2>Razlaga rezultatov</h2></div><div class="card-body" id="calculation"></div></section></div></div>
+<section class="card anchor report-section" id="report"><div class="card-head"><div><h2>Povzetek za tehnično ponudbo</h2><p class="inline-note">Vhodi, predpostavke in izračuni so vključeni v vsak izvoz.</p></div></div><div class="card-body"><div class="toolbar-group"><button class="btn btn-primary" id="copy-summary"><i data-icon="copy"></i>Kopiraj povzetek</button><button class="btn" id="csv-btn"><i data-icon="table"></i>Izvozi CSV</button><button class="btn" id="txt-btn"><i data-icon="download"></i>Prenesi TXT</button><button class="btn" id="print-main"><i data-icon="print"></i>Natisni / PDF</button></div><label class="visually-hidden" for="summary-text">Besedilo poročila</label><textarea id="summary-text" readonly rows="10" style="margin-top:16px"></textarea><label for="notes" style="margin-top:16px">Opombe / podlaga za čase</label><textarea id="notes" data-project rows="3" maxlength="3000" placeholder="Vir časov, meritve, omejitve, predpostavke ..."></textarea></div></section>
+<div class="bottom-note"><i data-icon="info"></i><span>Kapaciteta je ocena po izbranem modelu. Najdaljša operacija sama po sebi ne dokazuje ozkega grla celotne linije.</span></div><footer><span>Cikel / profesionalna orodja za načrtovanje celic</span><span>Deluje brez povezave · podatki ostanejo lokalni</span></footer></main></div>
+<dialog id="report-dialog"><div class="dialog-head"><h2>Poročilo projekta</h2><button class="btn btn-quiet" data-close="report-dialog" aria-label="Zapri poročilo"><i data-icon="close"></i></button></div><div class="toolbar-group" style="margin-bottom:18px"><button class="btn btn-primary" id="print-dialog"><i data-icon="print"></i>Natisni / PDF</button><button class="btn" id="dialog-txt"><i data-icon="download"></i>Prenesi TXT</button></div><div id="report-body"></div></dialog>
+<dialog id="confirm-dialog"><h2 id="confirm-title">Potrdi dejanje</h2><p id="confirm-message"></p><div class="toolbar-group"><button class="btn btn-primary" id="confirm-yes">Nadaljuj</button><button class="btn" data-close="confirm-dialog">Prekliči</button></div></dialog>
+<dialog id="copy-dialog"><div class="dialog-head"><h2>Kopiraj povzetek</h2><button class="btn" data-close="copy-dialog">Zapri</button></div><p>Samodejno kopiranje ni na voljo. Besedilo je označeno; uporabite Kopiraj ali Ctrl+C.</p><textarea id="copy-text" readonly rows="15"></textarea></dialog>
+<dialog id="help-dialog"><div class="dialog-head"><h2>Metode in področje uporabe</h2><button class="btn btn-quiet" data-close="help-dialog" aria-label="Zapri pomoč"><i data-icon="close"></i></button></div><div class="help-grid"><div><h3>Cikel in način izvajanja</h3><p>Zaporedni model sešteje čase vseh operacij. Pri vzporednih fazah faze sledijo po številkah. V eni fazi lahko različna sredstva delujejo hkrati; operacije istega sredstva sledijo zaporedno v vrstnem redu seznama. Naslednja faza začne po zaključku vseh operacij prejšnje.</p><p>Tak model ne obravnava prekrivanja zaporednih ciklov, cevovodne proizvodnje, zalog med postajami, blokad, transportnih omejitev ali samodejnega iskanja optimalnega razporeda. Te pogoje preverite za konkretno celico.</p><h3>Zasedenost</h3><p>Čas aktivnosti sredstva / čas cikla. To je zasedenost v modelu, ne izmerjena izkoriščenost v proizvodnji. Isto sredstvo mora imeti isto oznako in tip.</p></div><div><h3>Takt in kapaciteta</h3><p>Takt = načrtovani proizvodni čas / povpraševanje po dobrih kosih. Teoretična kapaciteta = 3600 × kosov na cikel / trajanje cikla v sekundah. Za primerjavo s povpraševanjem se upošteva tudi izbrani OEE oziroma efektivni cikel.</p><h3>Predpostavljeni OEE</h3><p>Pri idealnem ciklu se ocenjena proizvodnja pomnoži z OEE. OEE že zajema razpoložljivost, hitrost in kakovost; istih izgub ne odštevajte ponovno. Če cikel že vključuje te izgube in pomeni efektivni čas dobrih kosov, izberite drugo osnovo; OEE se tedaj ne uporabi.</p><p>Ocena dobrih kosov je zvezna planska ocena, prikazana navzdol na cele kose. Ločeno je navedeno največje število celih ciklov brez izgub; to ni napoved dejanskih zaključkov izmen.</p></div></div><h3>Viri definicij</h3><ul class="source-list"><li><a href="https://www.lean.org/lexicon-terms/takt-time/" target="_blank" rel="noopener">Lean Enterprise Institute — Takt Time</a></li><li><a href="https://www.oee.com/calculating-oee/" target="_blank" rel="noopener">Vorne — Calculating OEE</a></li></ul><p class="inline-note">Številke so projektantski preračun vhodnih podatkov. Za ponudbo zabeležite vir časov in merilne pogoje. Ikoni za zavihek in domači zaslon sta vgrajeni; možnost namestitve lokalne datoteke je odvisna od brskalnika.</p></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><div id="print-report"></div><script>(function (root, factory) {
+  'use strict';
+  var api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  if (root) root.CycleCore = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  var MAX_SAFE = Number.MAX_SAFE_INTEGER;
+  var MAX_SAFE_BIG = BigInt(MAX_SAFE);
+  var MAX_DURATION_MS = 86400000;
+  var TYPES = Object.freeze(['robot', 'machine', 'operator', 'pneumatic', 'other']);
+
+  class InputError extends Error {
+    constructor(message, field) {
+      super(message);
+      this.name = 'InputError';
+      this.field = field || null;
     }
-  </script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
+  }
+
+  function requireValue(condition, message, field) {
+    if (!condition) throw new InputError(message, field);
+  }
+
+  function gcd(a, b) {
+    a = a < 0n ? -a : a;
+    b = b < 0n ? -b : b;
+    while (b) {
+      var remainder = a % b;
+      a = b;
+      b = remainder;
     }
-    .font-mono-num {
-      font-family: 'JetBrains Mono', monospace;
+    return a || 1n;
+  }
+
+  function fraction(n, d) {
+    requireValue(d !== 0n, 'Deljenje z nič ni dovoljeno.');
+    if (d < 0n) { n = -n; d = -d; }
+    var divisor = gcd(n, d);
+    return { n: n / divisor, d: d / divisor };
+  }
+  function multiply(a, b) { return fraction(a.n * b.n, a.d * b.d); }
+  function divide(a, b) { return fraction(a.n * b.d, a.d * b.n); }
+  function subtract(a, b) { return fraction(a.n * b.d - b.n * a.d, a.d * b.d); }
+  function compare(a, b) {
+    var difference = a.n * b.d - b.n * a.d;
+    return difference < 0n ? -1 : (difference > 0n ? 1 : 0);
+  }
+  function integerFraction(value) { return { n: BigInt(value), d: 1n }; }
+  function decimalValue(value, options) {
+    options = options || {};
+    var label = options.label || 'Vrednost';
+    var field = options.field || null;
+    var precision = options.maxDecimals === undefined ? 3 : options.maxDecimals;
+    requireValue(Number.isInteger(precision) && precision >= 0 && precision <= 6,
+      'Neveljavna nastavitev natančnosti.', field);
+    requireValue(typeof value === 'number' || typeof value === 'string', label + ': vnesite število.', field);
+    if (typeof value === 'number') {
+      requireValue(Number.isFinite(value), label + ': vnesite končno število.', field);
     }
-  </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+    var source = String(value).trim();
+    requireValue(source.length > 0 && source.length <= 64,
+      label + ': vnesite veljavno število.', field);
+    requireValue(/^[+-]?(?:\d+(?:[.,]\d+)?|[.,]\d+)$/.test(source),
+      label + ': uporabite decimalno vejico ali piko, brez ločil tisočic ali eksponenta.', field);
+    var normalized = source.replace(',', '.');
+    var sign = 1n;
+    if (normalized[0] === '-' || normalized[0] === '+') {
+      if (normalized[0] === '-') sign = -1n;
+      normalized = normalized.slice(1);
+    }
+    var parts = normalized.split('.');
+    var decimals = parts[1] || '';
+    requireValue(decimals.length <= precision,
+      label + ': dovoljeno je največ ' + precision + ' decimalnih mest.', field);
+    var denominator = 10n ** BigInt(decimals.length);
+    var numerator = sign * BigInt((parts[0] || '0') + decimals);
+    // Keep the decimal's integer representation safe before conversion to Number.
+    requireValue(numerator <= MAX_SAFE_BIG && numerator >= -MAX_SAFE_BIG,
+      label + ': število je preveliko.', field);
+    var numeric = Number(numerator) / Number(denominator);
+    requireValue(Number.isFinite(numeric) && Math.abs(numeric) <= MAX_SAFE,
+      label + ': število je preveliko.', field);
+    if (options.integer) {
+      requireValue(numerator % denominator === 0n,
+        label + ': vnesite celo število.', field);
+    }
+    if (options.min !== undefined) {
+      requireValue(numeric >= options.min, label + ': najmanjša dovoljena vrednost je ' + options.min + '.', field);
+    }
+    if (options.max !== undefined) {
+      requireValue(numeric <= options.max, label + ': največja dovoljena vrednost je ' + options.max + '.', field);
+    }
+    return { value: numeric, rational: fraction(numerator, denominator) };
+  }
 
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- HEADER -->
-    <header class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-800 pb-5 gap-4">
-      <div>
-        <div class="flex items-center gap-3">
-          <div class="p-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold tracking-tight text-white">Analiza takta in kapacitete celice</h1>
-            <p class="text-sm text-slate-400">Inženirsko orodje za preračun cikla in optimizacijo ozkih grl za tehnične ponudbe</p>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <button onclick="loadSampleData()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md border border-slate-700 transition">
-          Naloži vzorčne podatke
-        </button>
-        <button onclick="clearAllSteps()" class="px-3 py-2 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-md border border-rose-800/50 transition">
-          Počisti vse
-        </button>
-      </div>
-    </header>
+  /** Strict decimal parser. Surrounding whitespace is accepted; grouping and exponents are not. */
+  function parseNumber(value, options) { return decimalValue(value, options).value; }
 
-    <!-- KPI DASHBOARD -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Total Cycle Time -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Skupni čas cikla</div>
-        <div class="mt-2 flex items-baseline gap-2">
-          <span id="kpi-cycle-time" class="text-3xl font-bold font-mono-num text-blue-400">0.00</span>
-          <span class="text-slate-400 font-medium">s</span>
-        </div>
-        <div class="text-xs text-slate-500 mt-1">Sota vseh operacij v celici</div>
-      </div>
+  /** Convert positive operation seconds (up to 3 decimal places) to exact integer milliseconds. */
+  function secondsToMs(value) {
+    var parsed = decimalValue(value, { label: 'Čas operacije', field: 'duration', min: 0, max: 86400 });
+    requireValue(parsed.rational.n > 0n, 'Čas operacije mora biti večji od 0 s.', 'duration');
+    var milliseconds = multiply(parsed.rational, integerFraction(1000));
+    requireValue(milliseconds.d === 1n, 'Čas operacije je lahko natančen največ na milisekundo.', 'duration');
+    return Number(milliseconds.n);
+  }
 
-      <!-- Theoretical PPH -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Teoretična kapaciteta</div>
-        <div class="mt-2 flex items-baseline gap-2">
-          <span id="kpi-pph-theo" class="text-3xl font-bold font-mono-num text-emerald-400">0</span>
-          <span class="text-slate-400 font-medium">kos / h</span>
-        </div>
-        <div class="text-xs text-slate-500 mt-1">Pri 100 % učinkovitosti</div>
-      </div>
+  function resourceKey(value) { return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('sl-SI'); }
+  function resourceLabel(value) { return value.trim().replace(/\s+/g, ' '); }
 
-      <!-- Realistic Production / Shift -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-        <div class="flex justify-between items-center">
-          <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Realno / Izmena (8h)</div>
-          <div class="flex items-center gap-1 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-            <span class="text-xs text-slate-400">OEE:</span>
-            <input type="number" id="oee-input" value="85" min="1" max="100" oninput="render()" class="w-10 bg-transparent text-right font-mono-num font-bold text-xs text-amber-400 focus:outline-none">
-            <span class="text-xs text-slate-400">%</span>
-          </div>
-        </div>
-        <div class="mt-2 flex items-baseline gap-2">
-          <span id="kpi-shift-real" class="text-3xl font-bold font-mono-num text-amber-400">0</span>
-          <span class="text-slate-400 font-medium">kos / 8h</span>
-        </div>
-        <div class="text-xs text-slate-500 mt-1">Realno: <span id="kpi-pph-real" class="font-mono-num text-slate-300">0</span> kos/h</div>
-      </div>
+  function validateSteps(steps) {
+    requireValue(Array.isArray(steps), 'Seznam operacij ni veljaven.', 'steps');
+    requireValue(steps.length <= 300, 'Dovoljeno je največ 300 operacij.', 'steps');
+    var seenIds = new Set();
+    var resourceTypes = new Map();
+    return steps.map(function (step, index) {
+      var path = 'steps[' + index + ']';
+      requireValue(step && typeof step === 'object' && !Array.isArray(step),
+        'Operacija ' + (index + 1) + ' ni veljavna.', path);
+      requireValue(Number.isSafeInteger(step.id) && step.id > 0,
+        'Operacija ' + (index + 1) + ': identifikator mora biti pozitivno celo število.', path + '.id');
+      requireValue(!seenIds.has(step.id), 'Identifikatorji operacij se ne smejo ponavljati.', path + '.id');
+      seenIds.add(step.id);
+      requireValue(typeof step.name === 'string' && step.name.trim().length > 0,
+        'Operacija ' + (index + 1) + ': vnesite naziv.', path + '.name');
+      requireValue(Number.isSafeInteger(step.durationMs) && step.durationMs > 0 && step.durationMs <= MAX_DURATION_MS,
+        'Operacija ' + (index + 1) + ': čas mora biti od 0,001 do 86.400 s.', path + '.durationMs');
+      requireValue(TYPES.indexOf(step.type) !== -1,
+        'Operacija ' + (index + 1) + ': izvajalec ni veljaven.', path + '.type');
+      requireValue(typeof step.resource === 'string' && step.resource.trim().length > 0,
+        'Operacija ' + (index + 1) + ': vnesite vir oziroma napravo.', path + '.resource');
+      requireValue(Number.isSafeInteger(step.phase) && step.phase >= 1 && step.phase <= 999,
+        'Operacija ' + (index + 1) + ': faza mora biti celo število od 1 do 999.', path + '.phase');
+      var key = resourceKey(step.resource);
+      requireValue(!resourceTypes.has(key) || resourceTypes.get(key) === step.type,
+        'Vir »' + resourceLabel(step.resource) + '« mora imeti pri vseh operacijah enako vrsto izvajalca.', path + '.type');
+      resourceTypes.set(key, step.type);
+      return {
+        id: step.id,
+        name: step.name.trim(),
+        durationMs: step.durationMs,
+        type: step.type,
+        resource: resourceLabel(step.resource),
+        resourceKey: key,
+        phase: step.phase,
+        inputIndex: index,
+        index: index
+      };
+    });
+  }
 
-      <!-- Bottleneck Card -->
-      <div id="bottleneck-card" class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg transition-all">
-        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider flex items-center justify-between">
-          <span>Ozko grlo (Bottleneck)</span>
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-500/20 text-rose-400 border border-rose-500/30">Omejitev</span>
-        </div>
-        <div id="kpi-bottleneck-name" class="mt-2 text-lg font-bold text-rose-400 truncate">/</div>
-        <div class="text-xs text-slate-400 mt-1">
-          Čas: <span id="kpi-bottleneck-time" class="font-mono-num font-bold text-slate-200">0.0</span>s 
-          (<span id="kpi-bottleneck-share" class="font-mono-num text-slate-200">0%</span> cikla)
-        </div>
-      </div>
-    </section>
+  /**
+   * Schedule one repeating cell cycle, with no overlap between cycles.
+   * sequential: operations follow array order; entered phase values are ignored.
+   * phases: ascending phases form barriers; resources run in parallel within each
+   * phase, while operations on the same normalized resource follow array order.
+   * Returned steps are sorted by startMs and inputIndex. utilization is 0..1.
+   */
+  function schedule(inputSteps, mode) {
+    mode = mode === undefined ? 'sequential' : mode;
+    if (mode && typeof mode === 'object') mode = mode.mode;
+    requireValue(mode === 'sequential' || mode === 'phases', 'Način poteka operacij ni veljaven.', 'mode');
+    var steps = validateSteps(inputSteps);
+    var workMs = steps.reduce(function (sum, step) { return sum + step.durationMs; }, 0);
+    var cycleMs = 0;
+    var phases = [];
 
-    <!-- MAIN GRID: EDITOR & TIMELINE -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      <!-- LEFT: OPERATIONS INPUT & TABLE (5 cols) -->
-      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-        <h2 class="text-base font-semibold text-white flex items-center gap-2">
-          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-          Vnos korakov procesa
-        </h2>
-
-        <!-- Form for adding step -->
-        <form id="step-form" onsubmit="addStep(event)" class="grid grid-cols-12 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800">
-          <div class="col-span-12 sm:col-span-5">
-            <label class="block text-[11px] font-medium text-slate-400 mb-1">Naziv operacije</label>
-            <input type="text" id="input-name" placeholder="npr. Premik robota" required class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
-          </div>
-          <div class="col-span-6 sm:col-span-3">
-            <label class="block text-[11px] font-medium text-slate-400 mb-1">Čas [s]</label>
-            <input type="number" id="input-time" step="0.1" min="0.1" placeholder="2.5" required class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white font-mono-num placeholder-slate-500 focus:outline-none focus:border-blue-500">
-          </div>
-          <div class="col-span-6 sm:col-span-4">
-            <label class="block text-[11px] font-medium text-slate-400 mb-1">Izvajalec</label>
-            <select id="input-executor" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="Robot">Robot</option>
-              <option value="Stroj">Stroj</option>
-              <option value="Operater">Operater</option>
-              <option value="Pnevmatski pogon">Pnevmatika</option>
-            </select>
-          </div>
-          <div class="col-span-12 mt-1">
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1">
-              <span>+ Dodaj korak</span>
-            </button>
-          </div>
-        </form>
-
-        <!-- Steps List / Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
-              <tr>
-                <th class="py-2.5 px-2">#</th>
-                <th class="py-2.5 px-2">Operacija</th>
-                <th class="py-2.5 px-2">Izvajalec</th>
-                <th class="py-2.5 px-2 text-right">Čas [s]</th>
-                <th class="py-2.5 px-2 text-center">Akcija</th>
-              </tr>
-            </thead>
-            <tbody id="steps-table-body" class="divide-y divide-slate-800/60 font-medium">
-              <!-- Dynamic content -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- RIGHT: VISUAL TIMELINE & EXPORT (7 cols) -->
-      <div class="lg:col-span-7 space-y-6">
-        
-        <!-- VISUAL TIMELINE CHART -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h2 class="text-base font-semibold text-white flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              Časovni potek operacij (Gantogram)
-            </h2>
-            
-            <!-- Legend -->
-            <div class="flex flex-wrap gap-2 text-[11px]">
-              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Robot</span>
-              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Stroj</span>
-              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>Operater</span>
-              <span class="inline-flex items-center gap-1 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>Pnevmatika</span>
-            </div>
-          </div>
-
-          <!-- Sequential Timeline Stack -->
-          <div class="space-y-3 pt-2" id="gantt-container">
-            <!-- Dynamic Gantt rows -->
-          </div>
-        </div>
-
-        <!-- EXPORT & PONUDBENI POVZETEK -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold text-white flex items-center gap-2">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-              Izvoz za tehnično ponudbo
-            </h2>
-            <div class="flex items-center gap-2">
-              <button onclick="copySummary()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition flex items-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <span>Kopiraj tekst</span>
-              </button>
-              <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-medium transition flex items-center gap-1">
-                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h55.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>Izvozi CSV</span>
-              </button>
-            </div>
-          </div>
-
-          <textarea id="summary-text" readonly class="w-full h-32 bg-slate-950 border border-slate-800 rounded p-3 text-xs font-mono-num text-slate-300 focus:outline-none resize-none"></textarea>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-xl text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
-    Kopirano v odložišče!
-  </div>
-
-  <script>
-    // State
-    let steps = [
-      { id: 1, name: "Naložitev surovca", time: 3.5, executor: "Operater" },
-      { id: 2, name: "Premik robota do vpenjala", time: 2.2, executor: "Robot" },
-      { id: 3, name: "Obdelava / Presanje", time: 11.5, executor: "Stroj" },
-      { id: 4, name: "Pnevmatski izmet", time: 1.2, executor: "Pnevmatski pogon" },
-      { id: 5, name: "Optična kontrola kvalitete", time: 2.8, executor: "Robot" },
-      { id: 6, name: "Razložitev in zlaganje", time: 3.8, executor: "Operater" }
-    ];
-
-    const executorColors = {
-      'Robot': { bg: 'bg-blue-500', text: 'text-blue-400', badge: 'bg-blue-500/20 border-blue-500/30' },
-      'Stroj': { bg: 'bg-emerald-500', text: 'text-emerald-400', badge: 'bg-emerald-500/20 border-emerald-500/30' },
-      'Operater': { bg: 'bg-amber-500', text: 'text-amber-400', badge: 'bg-amber-500/20 border-amber-500/30' },
-      'Pnevmatski pogon': { bg: 'bg-purple-500', text: 'text-purple-400', badge: 'bg-purple-500/20 border-purple-500/30' }
-    };
-
-    function render() {
-      const totalTime = steps.reduce((acc, curr) => acc + curr.time, 0);
-      const oee = parseFloat(document.getElementById('oee-input').value) || 85;
-      
-      // Calculate Metrics
-      const pphTheo = totalTime > 0 ? (3600 / totalTime) : 0;
-      const pphReal = pphTheo * (oee / 100);
-      const shiftReal = pphReal * 8;
-
-      // Find Bottleneck
-      let maxStep = null;
-      if (steps.length > 0) {
-        maxStep = steps.reduce((prev, current) => (prev.time > current.time) ? prev : current);
-      }
-
-      // Update KPI Cards
-      document.getElementById('kpi-cycle-time').textContent = totalTime.toFixed(2);
-      document.getElementById('kpi-pph-theo').textContent = Math.floor(pphTheo).toLocaleString('sl-SI');
-      document.getElementById('kpi-pph-real').textContent = Math.floor(pphReal).toLocaleString('sl-SI');
-      document.getElementById('kpi-shift-real').textContent = Math.floor(shiftReal).toLocaleString('sl-SI');
-
-      const cardBn = document.getElementById('bottleneck-card');
-      if (maxStep) {
-        document.getElementById('kpi-bottleneck-name').textContent = maxStep.name;
-        document.getElementById('kpi-bottleneck-time').textContent = maxStep.time.toFixed(1);
-        const share = totalTime > 0 ? ((maxStep.time / totalTime) * 100).toFixed(1) : 0;
-        document.getElementById('kpi-bottleneck-share').textContent = `${share}%`;
-        cardBn.classList.add('border-rose-500/40', 'bg-rose-950/10');
-      } else {
-        document.getElementById('kpi-bottleneck-name').textContent = '/';
-        document.getElementById('kpi-bottleneck-time').textContent = '0.0';
-        document.getElementById('kpi-bottleneck-share').textContent = '0%';
-        cardBn.classList.remove('border-rose-500/40', 'bg-rose-950/10');
-      }
-
-      // Render Table
-      const tbody = document.getElementById('steps-table-body');
-      tbody.innerHTML = '';
-      
-      steps.forEach((step, index) => {
-        const isBn = maxStep && step.id === maxStep.id;
-        const color = executorColors[step.executor] || executorColors['Robot'];
-
-        const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-800/40 transition ${isBn ? 'bg-rose-950/20' : ''}`;
-        tr.innerHTML = `
-          <td class="py-2.5 px-2 font-mono-num text-slate-500">${index + 1}</td>
-          <td class="py-2.5 px-2 font-medium text-white">
-            ${step.name}
-            ${isBn ? '<span class="ml-1 text-[9px] px-1 py-0.2 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded">Ozko grlo</span>' : ''}
-          </td>
-          <td class="py-2.5 px-2">
-            <span class="inline-block px-2 py-0.5 text-[10px] rounded border ${color.badge} ${color.text}">${step.executor}</span>
-          </td>
-          <td class="py-2.5 px-2 text-right font-mono-num text-slate-200">${step.time.toFixed(1)}s</td>
-          <td class="py-2.5 px-2 text-center">
-            <button onclick="removeStep(${step.id})" class="text-slate-500 hover:text-rose-400 transition p-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+    if (mode === 'sequential' && steps.length) {
+      steps.forEach(function (step) {
+        step.startMs = cycleMs;
+        cycleMs += step.durationMs;
+        step.endMs = cycleMs;
+        step.phaseStartMs = 0;
       });
+      steps.forEach(function (step) { step.phaseEndMs = cycleMs; });
+      phases.push({ phase: 1, startMs: 0, endMs: cycleMs, durationMs: cycleMs });
+    } else if (mode === 'phases') {
+      var groups = new Map();
+      steps.forEach(function (step) {
+        if (!groups.has(step.phase)) groups.set(step.phase, []);
+        groups.get(step.phase).push(step);
+      });
+      Array.from(groups.keys()).sort(function (a, b) { return a - b; }).forEach(function (phase) {
+        var phaseSteps = groups.get(phase);
+        var resourceOffsets = new Map();
+        var phaseStartMs = cycleMs;
+        var phaseDurationMs = 0;
+        phaseSteps.forEach(function (step) {
+          var resourceOffset = resourceOffsets.get(step.resourceKey) || 0;
+          step.startMs = phaseStartMs + resourceOffset;
+          step.endMs = step.startMs + step.durationMs;
+          step.phaseStartMs = phaseStartMs;
+          resourceOffsets.set(step.resourceKey, resourceOffset + step.durationMs);
+          phaseDurationMs = Math.max(phaseDurationMs, resourceOffset + step.durationMs);
+        });
+        cycleMs += phaseDurationMs;
+        phaseSteps.forEach(function (step) { step.phaseEndMs = cycleMs; });
+        phases.push({ phase: phase, startMs: phaseStartMs, endMs: cycleMs, durationMs: phaseDurationMs });
+      });
+    }
 
-      // Render Gantt
-      const gantt = document.getElementById('gantt-container');
-      gantt.innerHTML = '';
-
-      if (steps.length === 0) {
-        gantt.innerHTML = '<div class="text-center py-8 text-xs text-slate-500">Vnesite korake procesa za prikaz časovnega poteka.</div>';
-      } else {
-        steps.forEach((step) => {
-          const pct = totalTime > 0 ? (step.time / totalTime) * 100 : 0;
-          const isBn = maxStep && step.id === maxStep.id;
-          const color = executorColors[step.executor] || executorColors['Robot'];
-
-          const row = document.createElement('div');
-          row.className = 'space-y-1';
-          row.innerHTML = `
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-300 font-medium flex items-center gap-1.5">
-                ${step.name} 
-                <span class="text-[10px] text-slate-500">(${step.executor})</span>
-              </span>
-              <span class="font-mono-num text-slate-400">${step.time.toFixed(1)}s (${pct.toFixed(1)}%)</span>
-            </div>
-            <div class="w-full bg-slate-950 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
-              <div class="h-full rounded-full transition-all duration-500 ${color.bg} ${isBn ? 'ring-2 ring-rose-400 ring-offset-1 ring-offset-slate-950 animate-pulse' : ''}" style="width: ${Math.max(pct, 1)}%"></div>
-            </div>
-          `;
-          gantt.appendChild(row);
+    var resourceMap = new Map();
+    steps.forEach(function (step) {
+      if (!resourceMap.has(step.resourceKey)) {
+        resourceMap.set(step.resourceKey, {
+          key: step.resourceKey,
+          resource: step.resource,
+          type: step.type,
+          busyMs: 0,
+          utilization: 0
         });
       }
+      resourceMap.get(step.resourceKey).busyMs += step.durationMs;
+    });
+    var resources = Array.from(resourceMap.values());
+    resources.forEach(function (resource) { resource.utilization = cycleMs ? resource.busyMs / cycleMs : 0; });
+    var longestMs = steps.reduce(function (longest, step) { return Math.max(longest, step.durationMs); }, 0);
+    var longestPhaseMs = phases.reduce(function (longest, phase) { return Math.max(longest, phase.durationMs); }, 0);
+    steps.sort(function (a, b) { return a.startMs - b.startMs || a.inputIndex - b.inputIndex; });
 
-      // Update Summary Text
-      updateSummaryText(totalTime, pphTheo, pphReal, oee, shiftReal, maxStep);
-    }
+    return {
+      mode: mode,
+      steps: steps,
+      cycleMs: cycleMs,
+      workMs: workMs,
+      phases: phases,
+      resources: resources,
+      longestOperations: steps.filter(function (step) { return step.durationMs === longestMs; }),
+      criticalPhases: mode === 'phases' ? phases.filter(function (phase) { return phase.durationMs === longestPhaseMs; }) : []
+    };
+  }
 
-    function addStep(e) {
-      e.preventDefault();
-      const nameInput = document.getElementById('input-name');
-      const timeInput = document.getElementById('input-time');
-      const execInput = document.getElementById('input-executor');
+  function numericResult(value, label) {
+    requireValue(value.n >= 0n && value.n <= MAX_SAFE_BIG * value.d,
+      label + ': rezultat presega varno računsko območje.', 'capacity');
+    var numeric = Number(value.n) / Number(value.d);
+    requireValue(Number.isFinite(numeric) && numeric >= 0 && numeric <= MAX_SAFE,
+      label + ': rezultat presega varno računsko območje.', 'capacity');
+    return numeric;
+  }
+  function floorResult(value, label) {
+    var whole = value.n / value.d;
+    requireValue(whole >= 0n && whole <= MAX_SAFE_BIG,
+      label + ': rezultat presega varno računsko območje.', 'capacity');
+    return Number(whole);
+  }
 
-      const name = nameInput.value.trim();
-      const time = parseFloat(timeInput.value);
-      const executor = execInput.value;
+  /**
+   * Capacity is a continuous planning estimate, not a guaranteed discrete count.
+   * basis='ideal' applies the assumed OEE once; 'effective' uses an already
+   * loss-inclusive input cycle and ignores OEE to prevent counting losses twice.
+   * Decimal inputs are limited to three fractional places and evaluated exactly
+   * as rational integers for floors and demand comparisons.
+   */
+  function capacity(settings) {
+    requireValue(settings && typeof settings === 'object' && !Array.isArray(settings),
+      'Nastavitve kapacitete niso veljavne.', 'capacity');
+    requireValue(Number.isSafeInteger(settings.cycleMs) && settings.cycleMs > 0,
+      'Za izračun kapacitete mora biti cikel večji od 0 ms.', 'cycleMs');
+    requireValue(Number.isSafeInteger(settings.piecesPerCycle) && settings.piecesPerCycle > 0,
+      'Število kosov na cikel mora biti pozitivno celo število.', 'piecesPerCycle');
+    var shift = decimalValue(settings.shiftMinutes, { label: 'Trajanje izmene', field: 'shiftMinutes', min: 0 });
+    var breaks = decimalValue(settings.breakMinutes, { label: 'Čas brez načrtovane proizvodnje', field: 'breakMinutes', min: 0 });
+    requireValue(shift.rational.n > 0n, 'Trajanje izmene mora biti večje od 0 min.', 'shiftMinutes');
+    requireValue(compare(breaks.rational, shift.rational) < 0,
+      'Čas brez načrtovane proizvodnje mora biti krajši od izmene.', 'breakMinutes');
+    var basis = settings.basis;
+    requireValue(basis === 'ideal' || basis === 'effective', 'Osnova cikla ni veljavna.', 'basis');
+    // OEE is intentionally irrelevant for an already loss-inclusive cycle.
+    // Return the neutral 100% value in this mode, even when the disabled input is blank.
+    var oee = basis === 'effective' ? { value: 100, rational: integerFraction(100) } :
+      decimalValue(settings.oee, { label: 'Predpostavljeni OEE', field: 'oee', min: 0, max: 100 });
 
-      if (!name || isNaN(time) || time <= 0) return;
+    var demand = settings.demand === undefined ? null : settings.demand;
+    requireValue(demand === null || (Number.isSafeInteger(demand) && demand > 0),
+      'Zahtevana količina mora biti pozitivno celo število ali prazna.', 'demand');
+    var planned = multiply(subtract(shift.rational, breaks.rational), integerFraction(60000));
+    requireValue(planned.d === 1n && planned.n > 0n && planned.n <= MAX_SAFE_BIG,
+      'Načrtovani čas presega varno računsko območje.', 'shiftMinutes');
+    var plannedMs = Number(planned.n);
+    var cycle = integerFraction(settings.cycleMs);
+    var pieces = integerFraction(settings.piecesPerCycle);
+    var factor = basis === 'ideal' ? divide(oee.rational, integerFraction(100)) : integerFraction(1);
+    var theoreticalPph = divide(multiply(integerFraction(3600000), pieces), cycle);
+    var goodPph = multiply(theoreticalPph, factor);
+    var expectedGood = multiply(divide(multiply(planned, pieces), cycle), factor);
+    var completeCycles = floorResult(divide(planned, cycle), 'Število celih ciklov');
+    var completePieces = integerFraction(completeCycles).n * pieces.n;
+    requireValue(completePieces <= MAX_SAFE_BIG,
+      'Število celih kosov presega varno računsko območje.', 'piecesPerCycle');
+    var wholeExpectedGood = floorResult(expectedGood, 'Ocenjena količina');
+    // Do not multiply demand in Number space: even safe demand * 1000 may overflow.
+    var takt = demand === null ? null : fraction(planned.n, BigInt(demand) * 1000n);
+    var maxCycle = demand === null ? null : divide(multiply(multiply(planned, pieces), factor), fraction(BigInt(demand) * 1000n, 1n));
+    var effectiveSeconds = factor.n === 0n ? null : divide(divide(cycle, multiply(pieces, factor)), integerFraction(1000));
+    var goalComparison = demand === null ? null : compare(expectedGood, integerFraction(demand));
+    var zero = integerFraction(0);
+    var shortfall = demand === null ? null : (goalComparison < 0 ? subtract(integerFraction(demand), expectedGood) : zero);
+    var surplus = demand === null ? null : (goalComparison > 0 ? subtract(expectedGood, integerFraction(demand)) : zero);
 
-      steps.push({
-        id: Date.now(),
-        name: name,
-        time: time,
-        executor: executor
-      });
+    return {
+      cycleMs: settings.cycleMs,
+      piecesPerCycle: settings.piecesPerCycle,
+      shiftMinutes: shift.value,
+      breakMinutes: breaks.value,
+      plannedMs: plannedMs,
+      plannedMinutes: plannedMs / 60000,
+      oee: oee.value,
+      basis: basis,
+      factor: numericResult(factor, 'Faktor'),
+      demand: demand,
+      theoreticalPph: numericResult(theoreticalPph, 'Teoretična kapaciteta'),
+      goodPph: numericResult(goodPph, 'Ocenjena urna proizvodnja'),
+      expectedGoodShift: numericResult(expectedGood, 'Ocenjena proizvodnja na izmeno'),
+      wholeExpectedGood: wholeExpectedGood,
+      completeIdealCycles: completeCycles,
+      completeIdealPieces: Number(completePieces),
+      taktSec: takt === null ? null : numericResult(takt, 'Takt'),
+      maxIdealCycleSec: maxCycle === null ? null : numericResult(maxCycle, 'Največji dopustni cikel'),
+      requiredEffectiveSecPerGood: effectiveSeconds === null ? null : numericResult(effectiveSeconds, 'Efektivni čas na dober kos'),
+      goalMet: goalComparison === null ? null : goalComparison >= 0,
+      shortfall: shortfall === null ? null : numericResult(shortfall, 'Primanjkljaj'),
+      surplus: surplus === null ? null : numericResult(surplus, 'Presežek'),
+      wholeShortfall: demand === null ? null : Math.max(0, demand - wholeExpectedGood),
+      wholeSurplus: demand === null ? null : Math.max(0, wholeExpectedGood - demand)
+    };
+  }
 
-      nameInput.value = '';
-      timeInput.value = '';
-      nameInput.focus();
-      render();
-    }
+  return Object.freeze({
+    schedule: schedule,
+    capacity: capacity,
+    parseNumber: parseNumber,
+    secondsToMs: secondsToMs,
+    resourceKey: resourceKey,
+    InputError: InputError,
+    TYPES: TYPES,
+    MAX_DURATION_MS: MAX_DURATION_MS
+  });
+});
 
-    function removeStep(id) {
-      steps = steps.filter(s => s.id !== id);
-      render();
-    }
-
-    function clearAllSteps() {
-      if (confirm('Res želiš izbrisati vse korake?')) {
-        steps = [];
-        render();
-      }
-    }
-
-    function loadSampleData() {
-      steps = [
-        { id: 1, name: "Naložitev surovca", time: 3.5, executor: "Operater" },
-        { id: 2, name: "Premik robota do vpenjala", time: 2.2, executor: "Robot" },
-        { id: 3, name: "Obdelava / Presanje", time: 11.5, executor: "Stroj" },
-        { id: 4, name: "Pnevmatski izmet", time: 1.2, executor: "Pnevmatski pogon" },
-        { id: 5, name: "Optična kontrola kvalitete", time: 2.8, executor: "Robot" },
-        { id: 6, name: "Razložitev in zlaganje", time: 3.8, executor: "Operater" }
-      ];
-      render();
-    }
-
-    function updateSummaryText(totalTime, pphTheo, pphReal, oee, shiftReal, maxStep) {
-      const summaryArea = document.getElementById('summary-text');
-      let txt = `==================================================\n`;
-      txt += ` TEHNIČNA ANALIZA TAKTA IN KAPACITETE CELICE\n`;
-      txt += `==================================================\n`;
-      txt += `• Skupni čas cikla (T_cikel) : ${totalTime.toFixed(2)} s\n`;
-      txt += `• Teoretična kapaciteta (PPH) : ${Math.floor(pphTheo)} kos/uro\n`;
-      txt += `• Ciljna učinkovitost (OEE)  : ${oee} %\n`;
-      txt += `• Realna pričakovana proizvod: ${Math.floor(pphReal)} kos/uro (${Math.floor(shiftReal)} kos/izmeno 8h)\n`;
-      if (maxStep) {
-        txt += `• Ozko grlo linije (Bottleneck): ${maxStep.name} (${maxStep.time.toFixed(1)} s, ${((maxStep.time/totalTime)*100).toFixed(1)}% cikla)\n`;
-      }
-      txt += `--------------------------------------------------\n`;
-      txt += `RAZČLENITEV OPERACIJ:\n`;
-      steps.forEach((s, idx) => {
-        txt += ` ${idx + 1}. [${s.executor}] ${s.name}: ${s.time.toFixed(1)} s\n`;
-      });
-      txt += `==================================================`;
-
-      summaryArea.value = txt;
-    }
-
-    function copySummary() {
-      const summaryArea = document.getElementById('summary-text');
-      summaryArea.select();
-      navigator.clipboard.writeText(summaryArea.value);
-
-      const toast = document.getElementById('toast');
-      toast.classList.remove('translate-y-20', 'opacity-0');
-      setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 2000);
-    }
-
-    function exportCSV() {
-      if (steps.length === 0) return;
-      
-      let csv = '\uFEFF'; // UTF-8 BOM za pravilen prikaz v Excelu
-      csv += 'Zap st;Operacija;Izvajalec;Cas [s]\n';
-      
-      steps.forEach((s, i) => {
-        csv += `${i + 1};"${s.name.replace(/"/g, '""')}";"${s.executor}";${s.time.toString().replace('.', ',')}\n`;
-      });
-
-      const totalTime = steps.reduce((a, b) => a + b.time, 0);
-      csv += `;;Skupni cas [s];${totalTime.toString().replace('.', ',')}\n`;
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `Analiza_takta_celice_${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // Initial render
-    render();
-  </script>
-</body>
-</html>
+'use strict';
+const $=id=>document.getElementById(id),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const TYPES={robot:'Robot',machine:'Stroj',operator:'Operater',pneumatic:'Pnevmatika',other:'Drugo'},DEFAULT_RESOURCE={robot:'Robot 1',machine:'Stroj 1',operator:'Operater 1',pneumatic:'Pnevmatika 1',other:'Sredstvo 1'};
+const SETTINGS={model:'sequential',shiftMinutes:'480',breakMinutes:'30',piecesPerCycle:'1',demand:'',basis:'ideal',oee:'85'},META=['project','author','revision','notes'];
+let steps=[],editingId=null,history=[],sample=false,current={schedule:null,capacity:null,errors:[]},themePreference='auto',toastTimer,confirmAction=null;
+const touched=new Set(),ICONS={cycle:'M20 7a9 9 0 1 0 1 8M20 3v5h-5M12 7v5l3 2',dashboard:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',list:'M8 5h13M8 12h13M8 19h13M3 5h.1M3 12h.1M3 19h.1',calendar:'M3 5h18v16H3zM7 3v4m10-4v4M3 10h18M7 14h3m4 0h3M7 17h3',file:'M5 3h9l5 5v13H5zM14 3v6h5M8 13h8M8 17h5',save:'M5 3h12l4 4v14H3V3h2ZM7 3v6h10V3M7 21v-7h10v7',upload:'M12 16V3m-5 5 5-5 5 5M3 15v6h18v-6',download:'M12 3v13m-5-5 5 5 5-5M3 16v5h18v-5',print:'M6 8V3h12v5M6 17H3V8h18v9h-3M6 14h12v7H6zM17 11h1',check:'m5 12 4 4L19 6',alert:'m12 3 10 18H2L12 3Zm0 6v5m0 3v.1',info:'M12 8v.1M12 11v6M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0Z',reset:'M4 8a9 9 0 1 1-1 7M4 3v6h6',sample:'M9 3h6m-5 0v7L4 20h16l-6-10V3M8 15h8',copy:'M8 7h13v14H8zM16 7V3H3v14h5',close:'m6 6 12 12M6 18 18 6',help:'M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3m0 3v.1M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0Z',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M21 13a9 9 0 1 1-10-10 7 7 0 0 0 10 10Z',plus:'M12 5v14M5 12h14',undo:'M8 5 3 10l5 5M3 10h11a6 6 0 0 1 0 12',trash:'M4 7h16M9 7V3h6v4M6 7l1 14h10l1-14M10 11v6m4-6v6',edit:'m14 4 6 6M4 20l1-6L16 3a2 2 0 0 1 5 5L10 19l-6 1Z',up:'M12 20V4m-6 6 6-6 6 6',down:'M12 4v16m-6-6 6 6 6-6',table:'M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18'};
+const icon=n=>`<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="${ICONS[n]||ICONS.info}"/></svg>`,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n,d=3)=>n==null?'—':Number(n).toLocaleString('sl-SI',{maximumFractionDigits:d}),sec=ms=>fmt(ms/1000),numText=n=>String(n).replace('.',','),modelName=()=> $('model').value==='phases'?'Vzporedne faze po izvajalcih':'Zaporedni cikel';
+const cloneSteps=s=>s.map(x=>({...x}));
+function settingsRaw(){return Object.fromEntries(Object.keys(SETTINGS).map(id=>[id,$(id).value]))}
+function state(){return{schema:'cikel-projekt-v1',savedAt:new Date().toISOString(),metadata:Object.fromEntries(META.map(id=>[id,$(id).value])),settings:settingsRaw(),steps:cloneSteps(steps),sample}}
+function defaultSettings(){Object.entries(SETTINGS).forEach(([id,v])=>$(id).value=v)}
+function persist(){try{if($('remember').checked)localStorage.setItem('cikel-project-v1',JSON.stringify(state()));else localStorage.removeItem('cikel-project-v1')}catch{if($('remember').checked){$('remember').checked=false;toast('Shranjevanje v brskalnik ni na voljo. Projekt lahko shranite kot JSON.')}}}
+function toast(text){$('toast').textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').textContent='',5500)}
+function confirmUI(title,message,run){$('confirm-title').textContent=title;$('confirm-message').textContent=message;confirmAction=run;$('confirm-dialog').showModal()}
+function historyPush(){history.push(cloneSteps(steps));if(history.length>25)history.shift()}
+function commit(next,message=''){CycleCore.schedule(next,$('model').value);historyPush();steps=next;sample=false;cancelEdit();render();if(message)toast(message)}
+function nextId(){return steps.reduce((m,s)=>Math.max(m,s.id),0)+1}
+function phaseDefault(){return Math.min(999,steps.reduce((m,s)=>Math.max(m,s.phase),0)+1)}
+function cancelEdit(){editingId=null;$('step-form').reset();$('step-type').value='robot';$('step-resource').placeholder=DEFAULT_RESOURCE.robot;$('step-phase').value=String(phaseDefault());$('form-title').textContent='Nova operacija';$('submit-label').textContent='Dodaj operacijo';$('cancel-edit').hidden=true;$('form-error').textContent=''}
+function editStep(id){const s=steps.find(s=>s.id===id);if(!s)return;editingId=id;$('step-name').value=s.name;$('step-time').value=numText(s.durationMs/1000);$('step-type').value=s.type;$('step-resource').value=s.resource;$('step-phase').value=String(s.phase);$('form-title').textContent='Urejanje operacije';$('submit-label').textContent='Shrani spremembe';$('cancel-edit').hidden=false;$('form-error').textContent='';renderOperations();$('step-form').scrollIntoView({behavior:'smooth',block:'center'});$('step-name').focus({preventScroll:true})}
+function submitStep(e){e.preventDefault();try{const name=$('step-name').value.trim(),type=$('step-type').value,resource=$('step-resource').value.trim()||DEFAULT_RESOURCE[type];if(!name)throw Error('Vnesite naziv operacije.');if(!Object.hasOwn(TYPES,type))throw Error('Izberite izvajalca.');const durationMs=CycleCore.secondsToMs($('step-time').value),phase=$('model').value==='phases'?CycleCore.parseNumber($('step-phase').value,{label:'Faza',min:1,max:999,integer:true}):(editingId?steps.find(s=>s.id===editingId).phase:phaseDefault());const entry={id:editingId||nextId(),name,type,resource,durationMs,phase},next=editingId?steps.map(s=>s.id===editingId?entry:s):[...steps,entry];commit(next,editingId?'Spremembe so shranjene.':'Operacija je dodana.');$('step-name').focus({preventScroll:true})}catch(e){$('form-error').textContent=e.message}}
+function operationAction(action,id){const index=steps.findIndex(s=>s.id===id);if(index<0)return;if(action==='edit'){editStep(id);return}let next=cloneSteps(steps);if(action==='delete')next.splice(index,1);if(action==='duplicate')next.splice(index+1,0,{...next[index],id:nextId(),name:next[index].name+' — kopija'});if(action==='up'&&index>0)[next[index-1],next[index]]=[next[index],next[index-1]];if(action==='down'&&index<next.length-1)[next[index+1],next[index]]=[next[index],next[index+1]];try{commit(next,action==='delete'?'Operacija je odstranjena. Razveljavitev je na voljo.':'')}catch(e){toast(e.message)}}
+function actionButton(action,id,label,disabled=false){const icons={edit:'edit',duplicate:'copy',delete:'trash',up:'up',down:'down'};return `<button class="icon-btn ${action==='delete'?'danger':''}" data-action="${action}" data-id="${id}" title="${label}" aria-label="${label}" ${disabled?'disabled':''}>${icon(icons[action])}</button>`}
+function renderOperations(){const parallel=$('model').value==='phases';$('phase-field').hidden=!parallel;$('model-note').innerHTML=parallel?'Faze sledijo po številkah. Različna sredstva v isti fazi delujejo hkrati; isto sredstvo zaporedno. <button class="inline-link" data-parallel-example>Vstavi vzporedni primer</button>':'Vse operacije sledijo po vrstnem redu. Izbira izvajalca sama po sebi ne pomeni prekrivanja.';$('operations-note').textContent=steps.length?`${steps.length} operacij. ${parallel?'Puščice spreminjajo vrstni red v seznamu; številka faze določa vrstni red faz.':'Puščice spreminjajo vrstni red operacij.'}`:'Dodajte svojo prvo operacijo ali vstavite vzorčni proces.';$('operation-list').innerHTML=steps.length?steps.map((s,i)=>`<article class="operation-row ${editingId===s.id?'editing':''}"><span class="order">${i+1}</span><div><div class="operation-name">${esc(s.name)}</div><div class="operation-info"><i class="type-dot ${s.type}"></i><span>${esc(s.resource)}</span><span>${TYPES[s.type]}</span>${parallel?`<span>Faza ${s.phase}</span>`:''}</div></div><div class="operation-duration">${sec(s.durationMs)} <small>s</small></div><div class="row-actions">${actionButton('up',s.id,'Premakni navzgor',i===0)}${actionButton('down',s.id,'Premakni navzdol',i===steps.length-1)}${actionButton('duplicate',s.id,'Podvoji operacijo')}${actionButton('edit',s.id,'Uredi operacijo')}${actionButton('delete',s.id,'Odstrani operacijo')}</div></article>`).join(''):'<div class="empty-state">Proces še nima operacij.</div>';$('undo-btn').disabled=!history.length;$('clear-btn').disabled=!steps.length;}
+function readPlan(cycleMs){const raw=settingsRaw(),errors=[];function read(id,options){try{return CycleCore.parseNumber(raw[id],{label:{shiftMinutes:'Dolžina izmene',breakMinutes:'Čas brez proizvodnje',piecesPerCycle:'Kosov na cikel',demand:'Povpraševanje',oee:'Predpostavljeni OEE'}[id],...options})}catch(e){errors.push({id,message:e.message});return null}}const shift=read('shiftMinutes',{min:0.001,max:1440}),breaks=read('breakMinutes',{min:0,max:1440}),pieces=read('piecesPerCycle',{min:1,max:1000000,integer:true}),demand=raw.demand.trim()?read('demand',{min:1,max:1000000000,integer:true}):null,oee=raw.basis==='ideal'?read('oee',{min:0,max:100}):100;if(shift!=null&&breaks!=null&&breaks>=shift)errors.push({id:'breakMinutes',message:'Čas brez načrtovane proizvodnje mora biti krajši od izmene.'});let capacity=null;if(!errors.length&&cycleMs>0){try{capacity=CycleCore.capacity({cycleMs,shiftMinutes:raw.shiftMinutes,breakMinutes:raw.breakMinutes,piecesPerCycle:pieces,demand,oee:raw.basis==='ideal'?raw.oee:100,basis:raw.basis})}catch(e){errors.push({id:Object.hasOwn(SETTINGS,e.field)?e.field:'shiftMinutes',message:e.message})}}return{capacity,errors,parsed:{shift,breaks,pieces,demand,oee}}}
+function render(){let schedule=null,scheduleError='';try{schedule=CycleCore.schedule(steps,$('model').value)}catch(e){scheduleError=e.message}const plan=readPlan(schedule?.cycleMs||0);current={schedule,capacity:plan.capacity,errors:plan.errors,scheduleError,parsed:plan.parsed};$('oee').disabled=$('basis').value==='effective';$('basis-note').innerHTML=icon('info')+`<span>${$('basis').value==='ideal'?'Zastoji, hitrostne izgube in kakovost so zajeti v predpostavljenem OEE. Izgub ne odštevajte še enkrat.':'Cikel mora že predstavljati efektivni čas dobrih kosov. OEE se v tej osnovi ne uporabi; ne bo dodatno zmanjševal kapacitete.'}</span>`;Object.keys(SETTINGS).forEach(id=>{const out=$('err-'+id);if(out){const err=plan.errors.find(e=>e.id===id),show=err&&touched.has(id);out.textContent=show?err.message:'';$(id).setAttribute('aria-invalid',String(!!show));$(id).closest('.field').classList.toggle('invalid',!!show)}});$('plan-errors').textContent=plan.errors.map(e=>e.message).join('\n');$('model-pill').textContent=modelName();$('sample-pill').hidden=!sample;renderOperations();renderKPIs();renderTimeline();renderResources();renderCalculation();renderScenarioChoices();renderScenario();$('summary-text').value=summaryText();persist()}
+function renderKPIs(){const s=current.schedule,c=current.capacity;const effective=$('basis').value==='effective';$('theory-label').textContent=effective?'Kapaciteta iz efektivnega cikla':'Teoretična kapaciteta';$('theory-note').textContent=effective?'Vneseni cikel že vključuje izgube.':'Brez izgub, na uro proizvodnega časa.';$('kpi-cycle').textContent=s&&s.cycleMs>0?sec(s.cycleMs):'—';$('cycle-note').textContent=s&&s.cycleMs?`${$('model').value==='phases'?s.phases.length+' faz':'Vsota zaporednih operacij'} · ${fmt(current.parsed.pieces,0)} kos/cikel`:'Dodajte operacije.';$('kpi-theory').textContent=c?fmt(c.theoreticalPph,1):'—';$('kpi-shift').textContent=c?'≈ '+fmt(c.wholeExpectedGood,0):'—';$('shift-note').textContent=c?`${fmt(c.plannedMinutes)} min proizvodnje · ${c.basis==='ideal'?'predpostavljeni OEE '+fmt(c.oee)+' %':'efektivni cikel'} · ${fmt(c.goodPph,1)} dobrih kos/h`:'Dopolnite veljaven proces in plan.';$('kpi-takt').textContent=c?fmt(c.taktSec):'—';$('takt-note').textContent=c&&c.demand?`${fmt(c.demand,0)} dobrih kosov v ${fmt(c.plannedMinutes)} min`:'Vnesite povpraševanje za izmeno.';$('net-time-pill').textContent=c?fmt(c.plannedMinutes)+' min':current.parsed.shift!=null&&current.parsed.breaks!=null&&current.parsed.shift>current.parsed.breaks?fmt(current.parsed.shift-current.parsed.breaks)+' min':'— min';const goal=$('goal-status');goal.className='goal-status';let text='Vnesite operacije in povpraševanje, da preverite načrtovano doseganje cilja.';if(current.scheduleError)text=current.scheduleError;else if(current.errors.length)text='Kapaciteta se ne prikazuje, ker plan vsebuje neveljavne ali prazne obvezne podatke.';else if(c){if(c.demand){goal.classList.add(c.goalMet?'good':'bad');text=c.goalMet?`Ocena dosega cilj ${fmt(c.demand,0)} dobrih kosov na izmeno. Ocenjena rezerva: ${fmt(c.wholeSurplus,0)} kosov.`:`Ocena ne dosega cilja ${fmt(c.demand,0)} dobrih kosov. Ocenjeni primanjkljaj: ${fmt(c.wholeShortfall,0)} kosov. Potreben cikel pri teh predpostavkah: največ ${fmt(c.maxIdealCycleSec)} s/cikel.`}else text=`Ocenjena proizvodnja: ${fmt(c.expectedGoodShift,2)} dobrih kosov na izmeno. Vnesite povpraševanje za primerjavo s ciljem.`}goal.innerHTML=icon(c?.demand?(c.goalMet?'check':'alert'):'info')+`<span>${esc(text)}</span>`}
+function renderTimeline(){const s=current.schedule;$('schedule-error').textContent=current.scheduleError||'';const used=[...new Set(steps.map(x=>x.type))];$('legend').innerHTML=used.map(t=>`<span><i class="type-dot ${t}"></i>${TYPES[t]}</span>`).join('');if(!s||!s.steps.length){$('timeline').innerHTML='<div class="empty-state">Časovni potek se prikaže po vnosu operacij.</div>';$('phase-summary').innerHTML='';$('longest').hidden=true;return}$('longest').hidden=false;const ticks=[0,.25,.5,.75,1].map(f=>`<span>${sec(s.cycleMs*f)}</span>`).join('');$('timeline').innerHTML=`<div class="timeline-header"><span>Operacija / sredstvo</span><div class="time-axis">${ticks}</div></div>`+s.steps.map(x=>{const start=x.startMs/s.cycleMs*100,width=x.durationMs/s.cycleMs*100,tooltip=`${x.name} · ${x.resource}\nZačetek ${sec(x.startMs)} s · konec ${sec(x.endMs)} s · čas ${sec(x.durationMs)} s`;return `<div class="timeline-row" role="button" tabindex="0" data-edit="${x.id}" title="${esc(tooltip)}" aria-label="Uredi ${esc(x.name)}; začetek ${sec(x.startMs)} s, konec ${sec(x.endMs)} s"><div class="timeline-name">${x.inputIndex+1}. ${esc(x.name)}<small>${esc(x.resource)} · ${sec(x.startMs)}–${sec(x.endMs)} s</small></div><div class="timeline-lane"><div class="timeline-bar ${x.type}" style="left:${start}%;width:${width}%"><span>${width>=12?sec(x.durationMs)+' s':''}</span></div></div></div>`}).join('');$('phase-summary').innerHTML=$('model').value==='phases'?`<div class="phase-tags">${s.phases.map(p=>`<span class="phase-tag">Faza ${p.phase} · ${sec(p.startMs)}–${sec(p.endMs)} s</span>`).join('')}</div>`:'';const longest=s.longestOperations;$('longest').innerHTML=`<small>Najdaljša operacija${longest.length>1?' · enako trajanje':''}</small><b>${esc(longest.map(x=>x.name).join(' / '))} · ${sec(longest[0].durationMs)} s</b><p class="inline-note">Kandidat za pregled optimizacije. Najdaljša operacija sama ne določa kapacitete linije.</p>`}
+function renderResources(){const s=current.schedule;$('resources').innerHTML=s?.resources.length?s.resources.slice().sort((a,b)=>b.busyMs-a.busyMs).map(r=>`<div class="resource-row ${r.type}"><div class="resource-title"><span>${esc(r.resource)} <span class="source-tag">· ${TYPES[r.type]}</span></span><b>${fmt(r.utilization*100,1)} %</b></div><div class="resource-track"><i style="width:${r.utilization*100}%"></i></div><small>${sec(r.busyMs)} s aktivnosti / ${sec(s.cycleMs)} s cikla</small></div>`).join(''):'<div class="empty-state">Dodajte operacije in oznake sredstev.</div>'}
+function calcList(rows){return `<ul class="calc-list">${rows.map(([a,b])=>`<li><span>${a}</span><b>${b}</b></li>`).join('')}</ul>`}
+function renderCalculation(){const s=current.schedule,c=current.capacity;if(!s?.cycleMs){$('calculation').innerHTML='<p class="inline-note">Dopolnite proces za razlago izračuna.</p>';return}let rows=[['Način izvajanja',modelName()],['Vsota dela vseh operacij',sec(s.workMs)+' s'],['Trajanje celotnega cikla',sec(s.cycleMs)+' s']];if(c){rows.push(['Načrtovani proizvodni čas',fmt(c.shiftMinutes)+' − '+fmt(c.breakMinutes)+' = '+fmt(c.plannedMinutes)+' min'],['Kosov na cikel',fmt(c.piecesPerCycle,0)],[c.basis==='effective'?'Kapaciteta iz efektivnega cikla':'Teoretična kapaciteta',fmt(c.theoreticalPph,4)+' kos/h'],['Uporabljen faktor',c.basis==='ideal'?fmt(c.oee)+' % OEE':'1 — efektivni cikel'],['Ocenjena urna proizvodnja',fmt(c.goodPph,4)+' dobrih kos/h'],['Ocenjena proizvodnja / izmeno',fmt(c.expectedGoodShift,4)+' dobrih kosov'],['Celi cikli brez dodatnih izgub',fmt(c.completeIdealCycles,0)+' ciklov / '+fmt(c.completeIdealPieces,0)+' kosov']);if(c.demand)rows.push(['Zahtevani takt',fmt(c.taktSec,4)+' s/dober kos'],['Največji cikel za ciljno količino',fmt(c.maxIdealCycleSec,4)+' s/cikel'],['Efektivni čas na dober kos',c.requiredEffectiveSecPerGood==null?'Ni izhoda pri 0 % OEE':fmt(c.requiredEffectiveSecPerGood,4)+' s/kos'])}$('calculation').innerHTML=`<div class="formula formula-readable">Kapaciteta = 3600 × kosov na cikel / čas cikla<br>Takt = načrtovani proizvodni čas / povpraševanje</div>`+calcList(rows)+`<p class="inline-note">${c?'Ocena dobrih kosov je zvezna planska vrednost. Glavni prikaz jo zaokroži navzdol; celi cikli so prikazani ločeno.':'Plan vsebuje manjkajoče ali neveljavne podatke, zato kapaciteta ni izračunana.'} ${$('model').value==='phases'?'Model nima prekrivanja med različnimi cikli in ne preverja tehnoloških odvisnosti med sredstvi v isti fazi.':''}</p>`}
+function renderScenarioChoices(){const select=$('scenario-step'),old=select.value;select.innerHTML=steps.map((s,i)=>`<option value="${s.id}">${i+1}. ${esc(s.name)} · ${sec(s.durationMs)} s</option>`).join('');if(steps.some(s=>String(s.id)===old))select.value=old;else if(steps.length){const longest=current.schedule?.longestOperations[0];select.value=String(longest?.id||steps[0].id);$('scenario-time').value=numText(steps.find(s=>String(s.id)===select.value).durationMs/1000)}select.disabled=!steps.length;$('scenario-time').disabled=!steps.length}
+function scenario(){const id=Number($('scenario-step').value),step=steps.find(s=>s.id===id);if(!step)return null;const durationMs=CycleCore.secondsToMs($('scenario-time').value),next=steps.map(s=>s.id===id?{...s,durationMs}:s),schedule=CycleCore.schedule(next,$('model').value),plan=readPlan(schedule.cycleMs);return{id,durationMs,schedule,capacity:plan.capacity,changed:durationMs!==step.durationMs}}
+function renderScenario(){const out=$('scenario-result');$('scenario-apply').disabled=true;if(!steps.length){out.textContent='Najprej dodajte operacije.';return}try{const r=scenario();if(!r||!current.schedule?.cycleMs)return;const delta=r.schedule.cycleMs-current.schedule.cycleMs;out.innerHTML=`Nov cikel: <b>${sec(r.schedule.cycleMs)} s</b><br>Sprememba: ${delta>0?'+':''}${sec(delta)} s/cikel${r.capacity&&current.capacity?`<br>Ocena izmene: <b>${fmt(r.capacity.wholeExpectedGood,0)} kosov</b> (${r.capacity.wholeExpectedGood-current.capacity.wholeExpectedGood>=0?'+':''}${fmt(r.capacity.wholeExpectedGood-current.capacity.wholeExpectedGood,0)} kosov)`:''}${delta===0&&r.changed?'<br>Trajanje cikla se ne spremeni; druga vzporedna veja ostane merodajna.':''}`;$('scenario-apply').disabled=!r.changed}catch(e){out.textContent=e.message}}
+const SAMPLE=[['Naložitev surovca',3500,'operator','Operater 1'],['Premik robota do vpenjala',2200,'robot','Robot 1'],['Obdelava / stiskanje',11500,'machine','Stroj 1'],['Pnevmatski izmet',1200,'pneumatic','Pnevmatika 1'],['Optična kontrola kakovosti',2800,'robot','Robot 1'],['Razložitev in zlaganje',3800,'operator','Operater 1']];
+const PARALLEL=[['Naložitev in vpenjanje',4000,'robot','Robot 1',1],['Avtomatska obdelava',12000,'machine','Stroj 1',2],['Priprava embalaže',6000,'operator','Operater 1',2],['Priprava prijemala',2000,'robot','Robot 1',2],['Razložitev izdelka',3000,'robot','Robot 1',3],['Odlaganje izdelka',2000,'robot','Robot 1',3],['Potrditev cikla',500,'machine','Stroj 1',4]];
+function example(parallel=false){historyPush();steps=(parallel?PARALLEL:SAMPLE).map((a,i)=>({id:i+1,name:a[0],durationMs:a[1],type:a[2],resource:a[3],phase:parallel?a[4]:i+1}));defaultSettings();$('model').value=parallel?'phases':'sequential';$('demand').value='1000';sample=true;cancelEdit();render();toast('Vstavljeni so označeni vzorčni podatki. Nadomestite jih s podatki svoje celice.')}
+function newProject(){steps=[];history=[];sample=false;defaultSettings();META.forEach(id=>$(id).value='');touched.clear();cancelEdit();render();toast('Nov projekt je pripravljen.')}
+function download(content,name,type){const u=URL.createObjectURL(new Blob([content],{type:type+';charset=utf-8'})),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+function validateState(data){if(!data||data.schema!=='cikel-projekt-v1'||!Array.isArray(data.steps)||!data.settings||Array.isArray(data.settings)||typeof data.settings!=='object')throw Error('Datoteka ni projekt aplikacije Cikel.');let cleanSettings={...SETTINGS};for(const id of Object.keys(SETTINGS)){if(data.settings[id]!==undefined){const value=data.settings[id];if(typeof value!=='string'||value.length>24)throw Error('Neveljavna nastavitev: '+id);cleanSettings[id]=value}}if(!['sequential','phases'].includes(cleanSettings.model)||!['ideal','effective'].includes(cleanSettings.basis))throw Error('Neveljavna izbira načina izvajanja ali osnove cikla.');let metadata={};for(const id of META){const v=data.metadata?.[id]??'';if(typeof v!=='string'||v.length>(id==='notes'?3000:200))throw Error('Neveljavni podatki projekta.');metadata[id]=v}let clean=data.steps.map(s=>{if(!s||typeof s!=='object'||Array.isArray(s)||typeof s.name!=='string'||s.name.length>200||typeof s.resource!=='string'||s.resource.length>80)throw Error('Neveljavni podatki operacije.');return{id:s.id,name:s.name,durationMs:s.durationMs,type:s.type,resource:s.resource,phase:s.phase}});CycleCore.schedule(clean,cleanSettings.model);return{settings:cleanSettings,metadata,steps:clean,sample:data.sample===true}}
+function restore(data){const safe=validateState(data);steps=safe.steps;Object.entries(safe.settings).forEach(([id,v])=>$(id).value=v);META.forEach(id=>$(id).value=safe.metadata[id]);sample=safe.sample;history=[];touched.clear();cancelEdit();render()}
+async function importProject(){const f=$('import').files[0];if(!f)return;try{if(f.size>1024*1024)throw Error('Datoteka je prevelika; največ 1 MB.');const data=JSON.parse(await f.text());restore(data);toast('Projekt je odprt in ponovno izračunan.')}catch(e){toast('Uvoz ni uspel: '+e.message)}finally{$('import').value=''}}
+const LIMITS='Projektantska ocena po izbranem modelu. Celoten cikel se ponovi po zaključku vseh svojih operacij; različni cikli se ne prekrivajo. Vzporedne faze so zaporedne pregrade: različna sredstva v isti fazi delujejo hkrati, isto sredstvo zaporedno. Tehnološke, transportne in varnostne odvisnosti med sredstvi niso samodejno preverjene. Ni modela medfaznih zalog, cevovodne proizvodnje ali blokad. Najdaljša operacija ni dokaz ozkega grla celotne linije. OEE je uporabnikova predpostavka, ne izmerjen rezultat. Pri efektivnem ciklu se OEE ne uporabi. Ocenjena količina je zvezna planska ocena, prikazana navzdol na cele dobre kose; ne zagotavlja realizirane proizvodnje ali celih serij.';
+function reportLines(){const s=current.schedule,c=current.capacity;let lines=[`Način: ${modelName()}`,`Osnova: ${$('basis').selectedOptions[0].textContent}`];if(sample)lines.push('VZORČNI PODATKI — pred ponudbo nadomestite z dejanskimi podatki.');if(!s?.cycleMs)lines.push('BREZ VELJAVNEGA CIKLA: '+(current.scheduleError||'Ni operacij.'));else lines.push(`Čas cikla: ${sec(s.cycleMs)} s; vsota dela: ${sec(s.workMs)} s.`,`Najdaljša operacija: ${s.longestOperations.map(x=>x.name).join(' / ')} (${sec(s.longestOperations[0].durationMs)} s).`);if(c){lines.push(`${c.basis==='effective'?'Kapaciteta iz efektivnega cikla':'Teoretična kapaciteta'}: ${fmt(c.theoreticalPph,6)} kos/h.`,`Načrtovani čas proizvodnje: ${fmt(c.plannedMinutes)} min.`,`Ocenjena urna proizvodnja: ${fmt(c.goodPph,6)} dobrih kos/h.`,`Ocenjena proizvodnja na izmeno: ${fmt(c.expectedGoodShift,6)} dobrih kosov (prikaz ${fmt(c.wholeExpectedGood,0)}).`,`Celi cikli brez dodatnih izgub: ${fmt(c.completeIdealCycles,0)} ciklov / ${fmt(c.completeIdealPieces,0)} kosov.`);if(c.demand)lines.push(`Povpraševanje: ${fmt(c.demand,0)} dobrih kosov; takt ${fmt(c.taktSec,6)} s/dober kos.`,`Največji cikel za cilj: ${fmt(c.maxIdealCycleSec,6)} s/cikel.`,c.goalMet?`Ocena dosega cilj; rezerva ${fmt(c.wholeSurplus,0)} kosov.`:`Ocena ne dosega cilja; primanjkljaj ${fmt(c.wholeShortfall,0)} kosov.`)}else lines.push('KAPACITETA NI IZRAČUNANA: '+(current.errors.map(x=>x.message).join(' ')||'Dodajte operacije.'));return lines}
+function planRows(){return[['Način izvajanja',modelName()],['Dolžina izmene [min]',$('shiftMinutes').value],['Čas brez načrtovane proizvodnje [min]',$('breakMinutes').value],['Kosov na cikel',$('piecesPerCycle').value],['Povpraševanje [dobrih kosov / izmeno]',$('demand').value||'Ni vneseno'],['Osnova cikla',$('basis').selectedOptions[0].textContent],['Predpostavljeni OEE [%]',$('basis').value==='ideal'?$('oee').value:'Ni uporabljen — efektivni cikel']]}
+function summaryText(){let s=current.schedule;return`ANALIZA CIKLA IN KAPACITETE CELICE\n${new Date().toLocaleString('sl-SI')}\nProjekt: ${$('project').value}\nProjektant: ${$('author').value}\nRevizija: ${$('revision').value}\n\nREZULTATI\n${reportLines().join('\n')}\n\nPLAN\n${planRows().map(([a,b])=>a+': '+b).join('\n')}\n\nOPERACIJE\n${steps.map((x,i)=>{const scheduled=s?.steps.find(t=>t.id===x.id);return`${i+1}. ${x.name} | ${TYPES[x.type]} | ${x.resource} | ${sec(x.durationMs)} s${$('model').value==='phases'?' | faza '+x.phase:''}${scheduled?' | '+sec(scheduled.startMs)+'–'+sec(scheduled.endMs)+' s':''}`}).join('\n')}\n\nOPOMBE\n${$('notes').value}\n\nOMEJITVE\n${LIMITS}\n\nVIRI DEFINICIJ\nLean Enterprise Institute: https://www.lean.org/lexicon-terms/takt-time/\nVorne: https://www.oee.com/calculating-oee/`}
+function table(rows){return `<table><tbody>${rows.map(([a,b])=>`<tr><th>${esc(a)}</th><td>${esc(b)}</td></tr>`).join('')}</tbody></table>`}
+function reportHTML(){const s=current.schedule;return `<div class="report-content"><h1>Analiza cikla in kapacitete celice</h1><p>${esc(new Date().toLocaleString('sl-SI'))}</p>${table([['Projekt',$('project').value||'Brez oznake'],['Projektant',$('author').value||'Ni vnesen'],['Revizija',$('revision').value||'Ni vnesena']])}<h2>Rezultati in predpostavke</h2><p class="report-status">${esc(reportLines().join('\n'))}</p><h2>Plan proizvodnje</h2>${table(planRows())}<h2>Operacije</h2><div class="table-scroll"><table class="steps-report"><thead><tr><th>#</th><th>Operacija / sredstvo</th><th>Čas [s]</th><th>Faza</th><th>Začetek / konec [s]</th></tr></thead><tbody>${steps.map((x,i)=>{const p=s?.steps.find(t=>t.id===x.id);return `<tr><td>${i+1}</td><td>${esc(x.name)}<br><span class="small-note">${esc(x.resource)} · ${TYPES[x.type]}</span></td><td>${sec(x.durationMs)}</td><td>${$('model').value==='phases'?x.phase:'—'}</td><td>${p?sec(p.startMs)+' / '+sec(p.endMs):'—'}</td></tr>`}).join('')}</tbody></table></div><h2>Zasedenost sredstev</h2>${table(s?.resources.map(r=>[r.resource,sec(r.busyMs)+' s · '+fmt(r.utilization*100,3)+' % cikla'])||[])}<h2>Opombe</h2><p>${esc($('notes').value||'Ni opomb.')}</p><h2>Metode in omejitve</h2><p>${esc(LIMITS)}</p><p>Takt = načrtovani proizvodni čas / povpraševanje. Kapaciteta = 3600 × kosov na cikel / čas cikla. Ocena dobrih kosov = načrtovani čas / čas cikla × kosov na cikel × izbrani faktor. Pri idealnem ciklu je faktor OEE / 100; pri efektivnem ciklu 1.</p><p>Viri definicij: https://www.lean.org/lexicon-terms/takt-time/\nhttps://www.oee.com/calculating-oee/</p></div>`}
+function openReport(){render();$('report-body').innerHTML=reportHTML();$('report-dialog').showModal()}
+function printReport(){render();$('print-report').innerHTML=reportHTML();window.print()}
+function textExport(){render();download('\ufeff'+summaryText(),'Cikel-porocilo.txt','text/plain');toast('Poročilo TXT je pripravljeno za prenos.')}
+async function copySummary(){render();try{await navigator.clipboard.writeText(summaryText());toast('Povzetek je kopiran.')}catch{$('copy-text').value=summaryText();$('copy-dialog').showModal();$('copy-text').focus();$('copy-text').select()}}
+function csvCell(value){let text=String(value??'');if(/^[\s\u0000-\u001f]*[=+\-@]/.test(text)||/^[\t\r\n]/.test(text))text="'"+text;return'"'+text.replace(/"/g,'""')+'"'}
+function csvExport(){render();let rows=[['ANALIZA CIKLA IN KAPACITETE CELICE'],['Projekt',$('project').value],['Projektant',$('author').value],['Revizija',$('revision').value],[],['REZULTATI'],...reportLines().map(s=>[s]),[],['PLAN'],...planRows(),[],['Zap. št.','Operacija','Izvajalec','Sredstvo','Čas [s]','Faza','Začetek [s]','Konec [s]']];for(const[x,i]of steps.map((x,i)=>[x,i])){const s=current.schedule?.steps.find(t=>t.id===x.id);rows.push([i+1,x.name,TYPES[x.type],x.resource,numText(x.durationMs/1000),$('model').value==='phases'?x.phase:'',s?numText(s.startMs/1000):'',s?numText(s.endMs/1000):''])}rows.push([],['OPOMBE',$('notes').value],['OMEJITVE',LIMITS]);download('\ufeff'+rows.map(row=>row.map(csvCell).join(';')).join('\r\n'),'Cikel-analiza.csv','text/csv');toast('CSV z vhodi in rezultati je pripravljen za prenos.')}
+const media=matchMedia('(prefers-color-scheme: dark)');function applyTheme(){const resolved=themePreference==='auto'?(media.matches?'dark':'light'):themePreference;document.documentElement.dataset.theme=resolved;$('theme-light').setAttribute('aria-pressed',String(resolved==='light'));$('theme-dark').setAttribute('aria-pressed',String(resolved==='dark'));document.querySelector('meta[name=theme-color]').content=resolved==='dark'?'#0e1720':'#f3f5f7';try{localStorage.setItem('cikel-theme',themePreference)}catch{}}media.addEventListener('change',applyTheme);
+function initIcons(){const svg='<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180"><rect width="180" height="180" rx="34" fill="#172632"/><path d="M138 58a56 56 0 1 0 5 57m-5-82v29h-29" fill="none" stroke="#ff955c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M90 58v34l22 14" fill="none" stroke="#e3edf5" stroke-width="10" stroke-linecap="round"/></svg>';$('favicon').href='data:image/svg+xml,'+encodeURIComponent(svg);const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=180;const ctx=c.getContext('2d');if(ctx){ctx.drawImage(im,0,0);$('touch-icon').href=c.toDataURL('image/png')}}catch{}};im.src=$('favicon').href}
+function init(){ $$('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon));$('step-form').onsubmit=submitStep;$('cancel-edit').onclick=()=>{cancelEdit();renderOperations()};$('step-type').onchange=()=>$('step-resource').placeholder=DEFAULT_RESOURCE[$('step-type').value];$('operation-list').onclick=e=>{const b=e.target.closest('[data-action]');if(b)operationAction(b.dataset.action,Number(b.dataset.id))};$('timeline').onclick=e=>{const row=e.target.closest('[data-edit]');if(row)editStep(Number(row.dataset.edit))};$('timeline').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){const row=e.target.closest('[data-edit]');if(row){e.preventDefault();editStep(Number(row.dataset.edit))}}};$('undo-btn').onclick=()=>{if(!history.length)return;steps=history.pop();sample=false;cancelEdit();render();toast('Zadnja sprememba operacij je razveljavljena.')};$('clear-btn').onclick=()=>confirmUI('Odstrani vse operacije','Seznam operacij bo počiščen. Zadnjo spremembo lahko razveljavite.',()=>commit([],'Operacije so odstranjene.'));$('sample-btn').onclick=()=>confirmUI('Vstavi vzorčni proces','Trenutni seznam operacij in plan bosta zamenjana z vzorčnim procesom. Po potrebi prej shranite projekt.',()=>example(false));$('model-note').onclick=e=>{if(e.target.closest('[data-parallel-example]'))confirmUI('Vstavi vzporedni primer','Seznam in plan bosta zamenjana z vzorcem vzporednih faz. Shranite svoj projekt, če ga želite obdržati.',()=>example(true))};$('new-btn').onclick=()=>confirmUI('Začni nov projekt','Počiščene bodo operacije, podatki projekta in plan. Prenesene datoteke ostanejo na voljo.',newProject);$('confirm-yes').onclick=()=>{const run=confirmAction;confirmAction=null;$('confirm-dialog').close();run?.()};$('confirm-dialog').addEventListener('close',()=>confirmAction=null);$$('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());$$('[data-setting]').forEach(e=>e.addEventListener('input',()=>{touched.add(e.id);sample=false;render()}));$$('[data-project]').forEach(e=>e.addEventListener('input',()=>{$('summary-text').value=summaryText();persist()}));$('remember').onchange=()=>{persist();toast($('remember').checked?'Projekt se shranjuje samo v tem brskalniku.':'Samodejno shranjevanje je izključeno.')};$('save-project').onclick=()=>{download(JSON.stringify(state(),null,2),'Cikel-projekt.json','application/json');toast('Projekt JSON je pripravljen za prenos.')};$('load-project').onclick=()=>$('import').click();$('import').onchange=importProject;$('open-report').onclick=openReport;$('print-main').onclick=printReport;$('print-dialog').onclick=printReport;$('copy-summary').onclick=copySummary;$('csv-btn').onclick=csvExport;$('txt-btn').onclick=textExport;$('dialog-txt').onclick=textExport;$('help-btn').onclick=()=>$('help-dialog').showModal();$('theme-light').onclick=()=>{themePreference='light';applyTheme()};$('theme-dark').onclick=()=>{themePreference='dark';applyTheme()};$('scenario-step').onchange=()=>{const s=steps.find(x=>String(x.id)===$('scenario-step').value);$('scenario-time').value=s?numText(s.durationMs/1000):'';renderScenario()};$('scenario-time').oninput=renderScenario;$('scenario-apply').onclick=()=>{try{const r=scenario();if(r)commit(steps.map(s=>s.id===r.id?{...s,durationMs:r.durationMs}:s),'Novi čas operacije je uporabljen.')}catch(e){toast(e.message)}};$$('[data-section]').forEach(b=>b.onclick=()=>{$$('[data-section]').forEach(x=>x.setAttribute('aria-current',String(x===b)));$(b.dataset.section).scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})});try{const savedTheme=localStorage.getItem('cikel-theme');if(['auto','light','dark'].includes(savedTheme))themePreference=savedTheme}catch{}applyTheme();initIcons();let stored=null;try{stored=localStorage.getItem('cikel-project-v1')}catch{}if(stored){try{$('remember').checked=true;restore(JSON.parse(stored));toast('Projekt je obnovljen iz tega brskalnika.')}catch{defaultSettings();cancelEdit();render();toast('Shranjeni projekt ni berljiv. Uporabite uvoz JSON ali nov projekt.')}}else{defaultSettings();cancelEdit();render()}window.addEventListener('beforeprint',()=>$('print-report').innerHTML=reportHTML())}
+init();
+</script></body></html>
